@@ -20,6 +20,32 @@ local function reload()
     love.load()
 end
 
+local function evalCombat(dt)
+    for _, character in pairs(context.characterTable) do
+        character.weapon:evaluate(dt)
+    end
+
+    for i, bullet in ipairs(context.bulletTable) do
+        local collision = Utility.checkCollision(
+            bullet.position,
+            Vector.new(bullet.image:getDimensions()),
+            context.characterTable["enemy"].position,
+            Vector.new(context.characterTable["enemy"].image:getDimensions()) / 2
+        )
+        if collision then
+            context.characterTable["enemy"].health = context.characterTable["enemy"].health - 10
+            bullet.destroy = true
+        end
+        if bullet.destroy then
+            table.remove(context.bulletTable, i)
+            goto continue
+        end
+        bullet.eval(bullet, dt)
+        bullet.lifetime = bullet.lifetime + dt
+        ::continue::
+    end
+end
+
 function love.load()
     love.window.setTitle("The Hollow King's Curse")
 
@@ -124,20 +150,19 @@ function love.draw()
             context.scale
         )
         love.graphics.setColor(1, 1, 1)
-
-        for _, bullet in ipairs(context.bulletTable) do
-            local bulletWidth, bulletHeight = bullet.image:getDimensions()
-            love.graphics.draw(
-                bullet.image,
-                math.floor(bullet.position.x) * context.scale,
-                math.floor(bullet.position.y) * context.scale,
-                0,
-                context.scale,
-                context.scale,
-                bulletWidth / 2,
-                bulletHeight / 2
-            )
-        end
+    end
+    for _, bullet in ipairs(context.bulletTable) do
+        local bulletWidth, bulletHeight = bullet.image:getDimensions()
+        love.graphics.draw(
+            bullet.image,
+            math.floor(bullet.position.x) * context.scale,
+            math.floor(bullet.position.y) * context.scale,
+            0,
+            context.scale,
+            context.scale,
+            bulletWidth / 2,
+            bulletHeight / 2
+        )
     end
 end
 
@@ -170,29 +195,7 @@ function love.update(dt)
         context.characterTable["hero"].weapon:fire(start, target)
     end
 
-    for _, character in pairs(context.characterTable) do
-        character.weapon:evaluate(dt)
-    end
-
-    for i, bullet in ipairs(context.bulletTable) do
-        if bullet.destroy then
-            table.remove(context.bulletTable, i)
-            goto continue
-        end
-        bullet.eval(bullet, dt)
-        local collision = Utility.checkCollision(
-            bullet.position,
-            Vector.new(bullet.image:getDimensions()),
-            context.characterTable["enemy"].position,
-            Vector.new(context.characterTable["enemy"].image:getDimensions())
-        )
-        if collision then
-            context.characterTable["enemy"].health = context.characterTable["enemy"].health - 10
-            bullet.destroy = true
-        end
-        bullet.lifetime = bullet.lifetime + dt
-        ::continue::
-    end
+    evalCombat(dt)
 end
 
 love.keypressed = function(key)

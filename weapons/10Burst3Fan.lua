@@ -1,8 +1,8 @@
-local Weapon = {}
-Weapon.__index = Weapon
+local CustomWeapon = {}
+CustomWeapon.__index = CustomWeapon
 
-function Weapon.load()
-    local self = setmetatable({}, Weapon)
+function CustomWeapon.load()
+    local self = setmetatable({}, CustomWeapon)
     self.image = "smallBullet"
     self.cooldown = 0
     self.count = 1
@@ -57,4 +57,4 @@ function Weapon.load()
     return self
 end
 
-return Weapon
+return CustomWeapon

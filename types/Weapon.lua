@@ -1,5 +1,3 @@
-local Vector = require("types.Vector")
-
 local Weapon = {}
 Weapon.__index = Weapon
 
