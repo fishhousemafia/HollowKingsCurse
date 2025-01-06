@@ -10,26 +10,24 @@ end
 
 local Character = require "types.Character"
 local Context = require "types.Context"
+local Vector = require "types.Vector"
 local Weapon = require "types.Weapon"
 
-local chars = {} ---@type Character[]
-local weaponTable = {} ---@type Weapon[]
-local ctx = Context.new(360, 240, 1, {})
+local context = Context.new(320, 180, 1, {})
 
 local function reload()
-    chars = {}
     love.load()
 end
 
 function love.load()
     love.window.setTitle("The Hollow King's Curse")
 
-    local dw, dh = love.window.getDesktopDimensions(1)
-    ctx.scale = math.min(math.floor(dw / ctx.w), math.floor(dh / ctx.h))
-    if ctx.w * ctx.scale == dw or ctx.h * ctx.scale == dh then
-        ctx.scale = ctx.scale - 1
+    local desktopWidth, desktopHeight = love.window.getDesktopDimensions(1)
+    context.scale = math.min(math.floor(desktopWidth / context.width), math.floor(desktopHeight / context.height))
+    if context.width * context.scale == desktopWidth or context.height * context.scale == desktopHeight then
+        context.scale = context.scale - 1
     end
-    love.window.setMode(ctx.w * ctx.scale, ctx.h * ctx.scale, {
+    love.window.setMode(context.width * context.scale, context.height * context.scale, {
         fullscreen = false,
         resizable = false,
         vsync = true
@@ -43,7 +41,7 @@ function love.load()
     for _, file in ipairs(assetFiles) do
         local name = file:match("(.+)%.png$")
         if name then
-            ctx.imageTable[name] = love.graphics.newImage("assets/" .. file)
+            context.imageTable[name] = love.graphics.newImage("assets/" .. file)
         end
     end
 
@@ -52,49 +50,48 @@ function love.load()
         local name = file:match("(.+)%.lua$")
         if name then
             local weapon = require("weapons/" .. name)
-            weaponTable[name] = Weapon.new(ctx, weapon)
+            context.weaponTable[name] = Weapon.new(context, weapon)
         end
     end
 
-    chars["hero"] = Character.new(
-        ctx,
+    context.characterTable["hero"] = Character.new(
+        context,
         {
-            up = ctx.imageTable["arrowUp"],
-            down = ctx.imageTable["arrowDown"],
-            left = ctx.imageTable["arrowLeft"],
-            right = ctx.imageTable["arrowRight"]
+            up = context.imageTable["arrowUp"],
+            down = context.imageTable["arrowDown"],
+            left = context.imageTable["arrowLeft"],
+            right = context.imageTable["arrowRight"]
         },
-        ctx.w / 2,
-        ctx.h / 2,
+        Vector.new(context.width / 2, context.height / 2),
         60,
-        weaponTable["basic"]
+        context.weaponTable["basic"]
     )
 end
 
 function love.draw()
-    for _, char in pairs(chars) do
-        local cw, ch = char.image:getDimensions()
+    for _, character in pairs(context.characterTable) do
+        local characterWidth, characterHeight = character.image:getDimensions()
         love.graphics.draw(
-            char.image,
-            math.floor(char.x) * ctx.scale,
-            math.floor(char.y) * ctx.scale,
+            character.image,
+            math.floor(character.position.x) * context.scale,
+            math.floor(character.position.y) * context.scale,
             0,
-            ctx.scale,
-            ctx.scale,
-            cw / 2,
-            ch / 2
+            context.scale,
+            context.scale,
+            characterWidth / 2,
+            characterHeight / 2
         )
-        for _, bullet in ipairs(char.weapon.bullets) do
-            local pw, ph = char.weapon.image:getDimensions()
+        for _, bullet in ipairs(context.bulletTable) do
+            local bulletWidth, bulletHeight = bullet.image:getDimensions()
             love.graphics.draw(
-                char.weapon.image,
-                math.floor(bullet.x) * ctx.scale,
-                math.floor(bullet.y) * ctx.scale,
+                bullet.image,
+                math.floor(bullet.position.x) * context.scale,
+                math.floor(bullet.position.y) * context.scale,
                 0,
-                ctx.scale,
-                ctx.scale,
-                pw / 2,
-                ph / 2
+                context.scale,
+                context.scale,
+                bulletWidth / 2,
+                bulletHeight / 2
             )
         end
     end
@@ -108,33 +105,50 @@ function love.update(dt)
         reload()
     end
 
-    local xMove = 0
-    local yMove = 0
-
+    local move = Vector.new()
     if love.keyboard.isDown("w") then
-        yMove = yMove - 1
+        move.y = move.y - 1
     end
     if love.keyboard.isDown("s") then
-        yMove = yMove + 1
+        move.y = move.y + 1
     end
     if love.keyboard.isDown("a") then
-        xMove = xMove - 1
+        move.x = move.x - 1
     end
     if love.keyboard.isDown("d") then
-        xMove = xMove + 1
+        move.x = move.x + 1
     end
-    chars["hero"]:move(xMove, yMove, 0, 0, dt)
+    context.characterTable["hero"]:move(move, Vector.new(), dt)
 
     if love.mouse.isDown(1) then
-        local sx = chars["hero"].x
-        local sy = chars["hero"].y
-        local tx, ty = love.mouse.getPosition()
-        tx = math.floor(tx / ctx.scale)
-        ty = math.floor(ty / ctx.scale)
-        chars["hero"].weapon:fire(sx, sy, tx, ty)
+        local start = Vector.new(context.characterTable["hero"].position.x, context.characterTable["hero"].position.y)
+        local target = Vector.new(love.mouse.getPosition()) / context.scale
+        context.characterTable["hero"].weapon:fire(start, target)
     end
 
-    for _, char in pairs(chars) do
-        char.weapon:evaluate(dt)
+    for _, character in pairs(context.characterTable) do
+        character.weapon:evaluate(dt)
+    end
+
+    for i, bullet in ipairs(context.bulletTable) do
+        if bullet.destroy then
+            table.remove(context.bulletTable, i)
+            goto continue
+        end
+        bullet.eval(bullet, dt)
+        bullet.lifetime = bullet.lifetime + dt
+        ::continue::
+    end
+end
+
+love.keypressed = function(key)
+    if key == "1" then
+        context.characterTable["hero"].weapon = context.weaponTable["basic"]
+    end
+    if key == "2" then
+        context.characterTable["hero"].weapon = context.weaponTable["accelerate"]
+    end
+    if key == "3" then
+        context.characterTable["hero"].weapon = context.weaponTable["10Burst3Fan"]
     end
 end

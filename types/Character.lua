@@ -1,23 +1,23 @@
+local Vector = require("types.Vector")
+
 local Character = {}
 Character.__index = Character
 
 ---@class Character
 ---@field context Context
 ---@field imageTable love.Image[]
----@field x integer
----@field y integer
+---@field position Vector
 ---@field speed integer
 ---@field weapon Weapon
 ---@field image love.Image
 ---@field facing string
----@functions move fun(magX: integer, magY: integer, mx: integer, my: integer, dt: number)
+---@functions move fun(magnitudeX: integer, magnitudeY: integer, displacementX: integer, displacementY: integer, dt: number)
 
-function Character.new(context, images, x, y, speed, weapon)
+function Character.new(context, images, position, speed, weapon)
     local self = setmetatable({}, Character)
     self.context = context
     self.imageTable = images
-    self.x = x
-    self.y = y
+    self.position = position
     self.speed = speed
     self.weapon = weapon
     self.image = self.imageTable["down"]
@@ -25,40 +25,31 @@ function Character.new(context, images, x, y, speed, weapon)
     return self
 end
 
-function Character:move(magX, magY, dispX, dispY, dt)
-    if magX == 0 and magY == 0 and dispX == 0 and dispY == 0 then
+function Character:move(direction, displacement, dt)
+    if direction == Vector.new(0, 0) and displacement == Vector.new(0, 0) then
         return
     end
-    local unitX = magX
-    local unitY = magY
-    if math.abs(magX) + math.abs(magY) ~= 1 then
-        local normalizeFactor = math.sqrt((magX * magX) + (magY * magY))
-        if magX ~= 0 then
-            unitX = magX / normalizeFactor
-        end
-        if magY ~= 0 then
-            unitY = magY / normalizeFactor
-        end
+    if direction:isNormalized() == false then
+        direction = direction:getNormalized()
     end
-    local dx = unitX * dt * self.speed
-    local dy = unitY * dt * self.speed
-    self.x = self.x + dx + (dispX * dt)
-    self.y = self.y + dy + (dispY * dt)
-    self.x = math.max(0, math.min(self.context.w, self.x))
-    self.y = math.max(0, math.min(self.context.h, self.y))
-    if magY < 0 and (self.facing == "none" or (math.abs(magY) > math.abs(magX))) then
+    local unit = direction:getNormalized()
+    local delta = unit * dt * self.speed
+    self.position = self.position + delta + (displacement * dt)
+    self.position.x = math.max(0, math.min(self.context.width, self.position.x))
+    self.position.y = math.max(0, math.min(self.context.height, self.position.y))
+    if direction.y < 0 and (self.facing == "none" or (math.abs(direction.y) > math.abs(direction.x))) then
         self.image = self.imageTable["up"]
         self.facing = "up"
     end
-    if magY > 0 and (self.facing == "none" or (math.abs(magY) > math.abs(magX))) then
+    if direction.y > 0 and (self.facing == "none" or (math.abs(direction.y) > math.abs(direction.x))) then
         self.image = self.imageTable["down"]
         self.facing = "down"
     end
-    if magX < 0 and (self.facing == "none" or (math.abs(magX) > math.abs(magY))) then
+    if direction.x < 0 and (self.facing == "none" or (math.abs(direction.x) > math.abs(direction.y))) then
         self.image = self.imageTable["left"]
         self.facing = "left"
     end
-    if magX > 0 and (self.facing == "none" or (math.abs(magX) > math.abs(magY))) then
+    if direction.x > 0 and (self.facing == "none" or (math.abs(direction.x) > math.abs(direction.y))) then
         self.image = self.imageTable["right"]
         self.facing = "right"
     end
