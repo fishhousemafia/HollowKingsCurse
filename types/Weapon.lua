@@ -34,7 +34,7 @@ function Weapon:fire(start, target)
             position = bullet.position,
             data = bullet.data,
             eval = self.weapon.eval,
-            image = self.image,
+            image = self.context.imageTable[bullet.image] or self.image,
             start = start,
             target = target,
             lifetime = 0,
