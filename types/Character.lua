@@ -22,6 +22,8 @@ function Character.new(context, images, position, speed, weapon)
     self.weapon = weapon
     self.image = self.imageTable["down"]
     self.facing = "none"
+    self.maxHealth = 100
+    self.health = self.maxHealth
     return self
 end
 

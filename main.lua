@@ -10,6 +10,7 @@ end
 
 local Character = require "types.Character"
 local Context = require "types.Context"
+local Utility = require "types.Utility"
 local Vector = require "types.Vector"
 local Weapon = require "types.Weapon"
 
@@ -81,6 +82,18 @@ function love.draw()
             characterWidth / 2,
             characterHeight / 2
         )
+
+        love.graphics.setColor(0, 1, 0)
+        local barWidth = math.floor(Utility.map(0, character.health, 0, characterWidth, character.health))
+        love.graphics.rectangle(
+            "fill",
+            math.floor(character.position.x - (characterWidth / 2)) * context.scale,
+            math.floor(character.position.y - (characterHeight / 2) + characterHeight + 2) * context.scale,
+            barWidth * context.scale,
+            context.scale
+        )
+        love.graphics.setColor(1, 1, 1)
+
         for _, bullet in ipairs(context.bulletTable) do
             local bulletWidth, bulletHeight = bullet.image:getDimensions()
             love.graphics.draw(
