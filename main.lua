@@ -13,7 +13,7 @@ local Context = require "types.Context"
 local Vector = require "types.Vector"
 local Weapon = require "types.Weapon"
 
-local context = Context.new(320, 180, 1, {})
+local context = Context.new(320, 180, 1)
 
 local function reload()
     love.load()
