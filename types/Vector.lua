@@ -39,6 +39,26 @@ function Vector:__eq(other)
     return self.x == other.x and self.y == other.y
 end
 
+function Vector:__ne(other)
+	return not Vector.__eq(self, other)
+end
+
+function Vector:__unm(other)
+	return Vector.new(-other.x, -other.y)
+end
+
+function Vector:__lt(other)
+    return self.x < other.x and self.y < other.y
+end
+
+function Vector:__le(other)
+    return self.x <= other.x and self.y <= other.y
+end
+
+function Vector:__tostring()
+    return "(" .. self.x .. ", " .. self.y .. ")"
+end
+
 function Vector:getAngle()
     return math.atan2(self.y, self.x)
 end

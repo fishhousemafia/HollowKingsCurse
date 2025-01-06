@@ -55,6 +55,16 @@ function love.load()
         end
     end
 
+    context.characterTable["enemy"] = Character.new(
+        context,
+        {
+            down = context.imageTable["diamond"],
+        },
+        Vector.new(context.width / 3, context.height / 3),
+        60,
+        context.weaponTable["basic"]
+    )
+
     context.characterTable["hero"] = Character.new(
         context,
         {
@@ -83,13 +93,34 @@ function love.draw()
             characterHeight / 2
         )
 
-        love.graphics.setColor(0, 1, 0)
-        local barWidth = math.floor(Utility.map(0, character.health, 0, characterWidth, character.health))
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.rectangle(
+            "fill",
+            math.floor(character.position.x - (characterWidth / 2) - 1) * context.scale,
+            math.floor(character.position.y - (characterHeight / 2 + 1) + characterHeight + 2) * context.scale,
+            (characterWidth + 2) * context.scale,
+            3 * context.scale
+        )
+        love.graphics.setColor(1/2, 1/2, 1/2)
         love.graphics.rectangle(
             "fill",
             math.floor(character.position.x - (characterWidth / 2)) * context.scale,
             math.floor(character.position.y - (characterHeight / 2) + characterHeight + 2) * context.scale,
-            barWidth * context.scale,
+            characterWidth * context.scale,
+            context.scale
+        )
+        local barWidth, percent = Utility.map(0, character.maxHealth, 0, characterWidth, character.health)
+        local r = -percent + 1
+        local g = percent
+        local a = math.min(1 / r, 1 / g)
+        r = r * a
+        g = g * a
+        love.graphics.setColor(r, g, 0)
+        love.graphics.rectangle(
+            "fill",
+            math.floor(character.position.x - (characterWidth / 2)) * context.scale,
+            math.floor(character.position.y - (characterHeight / 2) + characterHeight + 2) * context.scale,
+            math.floor(barWidth) * context.scale,
             context.scale
         )
         love.graphics.setColor(1, 1, 1)
@@ -149,6 +180,16 @@ function love.update(dt)
             goto continue
         end
         bullet.eval(bullet, dt)
+        local collision = Utility.checkCollision(
+            bullet.position,
+            Vector.new(bullet.image:getDimensions()),
+            context.characterTable["enemy"].position,
+            Vector.new(context.characterTable["enemy"].image:getDimensions())
+        )
+        if collision then
+            context.characterTable["enemy"].health = context.characterTable["enemy"].health - 10
+            bullet.destroy = true
+        end
         bullet.lifetime = bullet.lifetime + dt
         ::continue::
     end
