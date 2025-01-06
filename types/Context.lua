@@ -9,6 +9,7 @@ Context.__index = Context
 ---@field characterTable Character[]
 ---@field weaponTable Weapon[]
 ---@field bulletTable table[]
+---@field audioTable love.Source[]
 
 function Context.new(w, h, scale)
     local self = setmetatable({}, Context)
@@ -19,6 +20,7 @@ function Context.new(w, h, scale)
     self.characterTable = {}
     self.weaponTable = {}
     self.bulletTable = {}
+    self.audioTable = {}
     return self
 end
 

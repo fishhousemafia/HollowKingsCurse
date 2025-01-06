@@ -21,8 +21,26 @@ local function reload()
 end
 
 local function evalCombat(dt)
-    for _, character in pairs(context.characterTable) do
+    for id, character in pairs(context.characterTable) do
+        if character.health <= 0 then
+            context.audioTable["enemyDead"]:setPitch(1)
+            context.audioTable["enemyDead"]:setPitch(1 + love.math.random(-1, 1) / 10)
+            context.audioTable["enemyDead"]:play()
+            context.characterTable[id] = nil
+        end
         character.weapon:evaluate(dt)
+    end
+
+    if context.characterTable["enemy"] == nil then
+        context.characterTable["enemy"] = Character.new(
+            context,
+            {
+                down = context.imageTable["diamond"],
+            },
+            Vector.new(math.random(0, context.width), math.random(0, context.height)),
+            60,
+            context.weaponTable["basic"]
+        )
     end
 
     for i, bullet in ipairs(context.bulletTable) do
@@ -81,12 +99,20 @@ function love.load()
         end
     end
 
+    local audioFiles = love.filesystem.getDirectoryItems("assets")
+    for _, file in ipairs(audioFiles) do
+        local name = file:match("(.+)%.wav$")
+        if name then
+            context.audioTable[name] = love.audio.newSource("assets/" .. file, "static")
+        end
+    end
+
     context.characterTable["enemy"] = Character.new(
         context,
         {
             down = context.imageTable["diamond"],
         },
-        Vector.new(context.width / 3, context.height / 3),
+        Vector.new(math.random(0, context.width), math.random(0, context.height)),
         60,
         context.weaponTable["basic"]
     )
