@@ -10,6 +10,8 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
   end
 end
 
+_G.VEC_COUNT = 0
+
 local Character = require("library/Character")
 local EventBus = require("library/EventBus")
 local MessageQueue = require("library/MessageQueue")
@@ -91,25 +93,26 @@ end
 
 function love.draw()
   love.graphics.setColor(1, 1, 1)
-  local x, y = (hero.position * scaleFactor):floor():tuple() -- TODO this is wrong somehow
+  local x, y = (hero.position:floor() * scaleFactor):tuple()
   local w, h = (Vector2.new(8, 8) * scaleFactor):tuple()
   love.graphics.rectangle("fill", x, y, w, h)
 
   love.graphics.setColor(1, 0, 0)
   if lastAttack then
-    local x1, y1 = (lastAttack.source * scaleFactor):floor():tuple()
-    local x2, y2 = (lastAttack.destination * scaleFactor):floor():tuple()
+    local x1, y1 = (lastAttack.source:floor() * scaleFactor):tuple()
+    local x2, y2 = (lastAttack.destination:floor() * scaleFactor):tuple()
     love.graphics.line(x1, y1, x2, y2)
   end
 
   for projectile in projectileManager:iterate() do
-    x, y = (projectile.position * scaleFactor):floor():tuple() -- TODO this is wrong somehow
+    x, y = (projectile.position:floor() * scaleFactor):tuple()
     w, h = scaleFactor, scaleFactor
     love.graphics.rectangle("fill", x, y, w, h)
   end
 
   love.graphics.setColor(1, 1, 0)
   love.graphics.print(string.format("FPS: %d", 1/love.timer.getDelta()))
-
+  love.graphics.print(string.format("VEC_COUNT: %d", _G.VEC_COUNT), 0, 16)
+  _G.VEC_COUNT = 0
 end
 

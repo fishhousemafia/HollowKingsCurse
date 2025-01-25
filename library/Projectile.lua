@@ -21,11 +21,13 @@ Projectile.__index = Projectile
 
 local function dActivate(self, source, destination)
   self.active = true
-  self.lifetime = 50
+  self.lifetime = 2
   self.source = source
   self.position = source
   self.destination = destination
-  self.alpha = 0
+
+  local angle = self.source:angle(destination, true)
+  self.delta = Vector2.new(math.cos(angle), math.sin(angle))
 end
 
 local function dEvaluate(self, dt)
@@ -34,8 +36,9 @@ local function dEvaluate(self, dt)
     self.active = false
     return
   end
-  self.alpha = self.alpha + (0.1 * dt)
-  self.position = self.source:lerp(self.destination, self.alpha)
+
+  local speed = 80
+  self.position = self.position + (self.delta * speed * dt)
 end
 
 ---@return Projectile

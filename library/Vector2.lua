@@ -16,6 +16,7 @@ function Vector2.new(x, y)
   local self = setmetatable({}, Vector2)
   self.x = x or 0
   self.y = y or 0
+  _G.VEC_COUNT = _G.VEC_COUNT + 1
   return self
 end
 
