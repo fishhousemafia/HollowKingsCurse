@@ -33,4 +33,11 @@ function Utils.stringify(o)
   return builder .. "}"
 end
 
+function Utils.setFinalizer(t, fn)
+   local mt = getmetatable(t) or {}
+   setmetatable(t, mt)
+   mt.__proxy = newproxy(true)
+   getmetatable(mt.__proxy).__gc = function() fn(t) end
+end
+
 return Utils

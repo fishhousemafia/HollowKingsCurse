@@ -1,7 +1,4 @@
-local ServiceLocator = require("library/ServiceLocator")
 local Vector2 = require("library/Vector2")
-
-local eventBus = ServiceLocator:get("EventBus")
 
 ---@class Projectile
 ---@field private __index Projectile
@@ -65,4 +62,3 @@ function Projectile:reset()
 end
 
 return Projectile
-

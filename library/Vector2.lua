@@ -1,23 +1,66 @@
 local kind = require("library/Utils").kind
+local setFinalizer = require("library/Utils").setFinalizer
 local stringify = require("library/Utils").stringify
+
+_G.VECTOR2_SAVIOR = {}
+_G.VECTOR2_KEEPALIVE = {}
 
 ---@class Vector2
 ---@field private __index Vector2
 ---@field private kind string
 ---@field x number
 ---@field y number
+---@field private dispatched boolean
+---@field private seq number
+---@field private index number
 local Vector2 = { kind = "Vector2" }
 Vector2.__index = Vector2
+
+local pool = setmetatable({}, { __mode = "v" })
+local numActive = 0
+local seq = 1
+local finalizer = function(self)
+  table.insert(_G.VECTOR2_SAVIOR, self)
+end
 
 ---@param x number
 ---@param y number
 ---@return Vector2 # The Vector2 data type represents a 2D value with direction and magnitude.
 function Vector2.new(x, y)
-  local self = setmetatable({}, Vector2)
+  local self = nil
+  if numActive == #pool then
+    _G.VEC_COUNT = _G.VEC_COUNT + 1
+    _G.VEC_POOL = _G.VEC_POOL + 1
+    self = setmetatable({}, Vector2)
+    setFinalizer(self, finalizer)
+    self.index = numActive + 1
+    self.seq = seq
+    seq = seq + 1
+    pool[numActive + 1] = self
+  else
+    self = pool[numActive + 1]
+    setFinalizer(self, finalizer)
+    _G.VECTOR2_KEEPALIVE[self.seq] = nil
+  end
+  numActive = numActive + 1
   self.x = x or 0
   self.y = y or 0
-  _G.VEC_COUNT = _G.VEC_COUNT + 1
+  self.dispatched = true
   return self
+end
+
+function Vector2:release()
+  _G.VECTOR2_KEEPALIVE[self.seq] = self
+  local a = self.index
+  local b = numActive
+  self.dispatched = false
+  pool[a], pool[b] = pool[b], pool[a]
+  pool[a].index, pool[b].index = pool[b].index, pool[a].index
+  numActive = numActive - 1
+end
+
+function Vector2:clone()
+  return Vector2.new(self:tuple())
 end
 
 ---@return Vector2 # A Vector2 with a magnitude of zero.

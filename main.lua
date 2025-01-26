@@ -1,3 +1,4 @@
+collectgarbage("stop")
 if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
   local lldebugger = require("lldebugger")
   lldebugger.start()
@@ -11,21 +12,19 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
 end
 
 _G.SCALE_FACTOR = 1
+_G.VEC_POOL = 0
 _G.VEC_COUNT = 0
 
 local Character = require("library/Character")
 local EventBus = require("library/EventBus")
-local MessageQueue = require("library/MessageQueue")
 local ProjectileManager = require("library/ProjectileManager")
 local ServiceLocator = require("library/ServiceLocator")
 local Vector2 = require("library/Vector2")
 
 local eventBus = ServiceLocator:register(EventBus)
-local messageQueue = ServiceLocator:register(MessageQueue)
 local projectileManager = ServiceLocator:register(ProjectileManager)
 local hero = nil ---@type Character
 local lastAttack = nil
---local frameRate = 60
 
 function love.load()
   local gameDimensions = Vector2.new(320, 240)
@@ -53,13 +52,18 @@ function love.keypressed(key)
 end
 
 function love.update(dt)
+  collectgarbage("collect")
+  for k, v in pairs(_G.VECTOR2_SAVIOR) do
+    v:release()
+    _G.VECTOR2_SAVIOR[k] = nil
+  end
+
+
+
+
   eventBus:emit("update", dt)
 
   projectileManager:evaluate(dt)
-
-  --if dt < 1/frameRate then
-  --  love.timer.sleep(1/frameRate - dt)
-  --end
 end
 
 function love.draw()
@@ -84,6 +88,6 @@ function love.draw()
   love.graphics.setColor(1, 1, 0)
   love.graphics.print(string.format("FPS: %d", 1/love.timer.getDelta()))
   love.graphics.print(string.format("VEC_COUNT: %d", _G.VEC_COUNT), 0, 16)
+  love.graphics.print(string.format("VEC_POOL: %d", _G.VEC_POOL), 0, 32)
   _G.VEC_COUNT = 0
 end
-
