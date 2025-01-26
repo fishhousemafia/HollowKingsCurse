@@ -2,9 +2,6 @@ local kind = require("library/Utils").kind
 local setFinalizer = require("library/Utils").setFinalizer
 local stringify = require("library/Utils").stringify
 
-_G.VECTOR2_SAVIOR = {}
-_G.VECTOR2_KEEPALIVE = {}
-
 ---@class Vector2
 ---@field private __index Vector2
 ---@field private kind string
@@ -12,15 +9,21 @@ _G.VECTOR2_KEEPALIVE = {}
 ---@field y number
 ---@field private dispatched boolean
 ---@field private seq number
----@field private index number
 local Vector2 = { kind = "Vector2" }
 Vector2.__index = Vector2
 
-local pool = setmetatable({}, { __mode = "v" })
-local numActive = 0
+_G.VEC_CREATE = 0
+_G.VEC_DISPATCH = 0
+_G.VEC_POOL = 0
+_G.VEC_READY = 0
+
+local active = setmetatable({}, { __mode = "v" })
+local inactive = {}
 local seq = 0
 local finalizer = function(self)
-  table.insert(_G.VECTOR2_SAVIOR, self)
+  self.dispatched = false
+  table.insert(inactive, self)
+  active[self.seq] = nil
 end
 
 ---@param x number
@@ -28,35 +31,23 @@ end
 ---@return Vector2 # The Vector2 data type represents a 2D value with direction and magnitude.
 function Vector2.new(x, y)
   local self = nil
-  if numActive == #pool then
-    numActive = numActive + 1
+  _G.VEC_DISPATCH = _G.VEC_DISPATCH + 1
+  if #inactive == 0 then
     seq = seq + 1
     _G.VEC_CREATE = _G.VEC_CREATE + 1
-    _G.VEC_POOL = _G.VEC_POOL + 1
+    _G.VEC_POOL = seq
     self = setmetatable({}, Vector2)
-    self.index = numActive
     self.seq = seq
-    pool[numActive] = self
   else
-    numActive = numActive + 1
-    self = pool[numActive]
-    _G.VECTOR2_KEEPALIVE[self.seq] = nil
+    self = table.remove(inactive)
+    _G.VEC_READY = #inactive
   end
+  active[self.seq] = self
   setFinalizer(self, finalizer)
   self.x = x or 0
   self.y = y or 0
   self.dispatched = true
   return self
-end
-
-function Vector2:release()
-  _G.VECTOR2_KEEPALIVE[self.seq] = self
-  local a = self.index
-  local b = numActive
-  self.dispatched = false
-  pool[a], pool[b] = pool[b], pool[a]
-  pool[a].index, pool[b].index = pool[b].index, pool[a].index
-  numActive = numActive - 1
 end
 
 function Vector2:clone()
