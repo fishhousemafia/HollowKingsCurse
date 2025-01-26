@@ -18,7 +18,7 @@ Vector2.__index = Vector2
 
 local pool = setmetatable({}, { __mode = "v" })
 local numActive = 0
-local seq = 1
+local seq = 0
 local finalizer = function(self)
   table.insert(_G.VECTOR2_SAVIOR, self)
 end
@@ -29,20 +29,20 @@ end
 function Vector2.new(x, y)
   local self = nil
   if numActive == #pool then
-    _G.VEC_COUNT = _G.VEC_COUNT + 1
+    numActive = numActive + 1
+    seq = seq + 1
+    _G.VEC_CREATE = _G.VEC_CREATE + 1
     _G.VEC_POOL = _G.VEC_POOL + 1
     self = setmetatable({}, Vector2)
-    setFinalizer(self, finalizer)
-    self.index = numActive + 1
+    self.index = numActive
     self.seq = seq
-    seq = seq + 1
-    pool[numActive + 1] = self
+    pool[numActive] = self
   else
-    self = pool[numActive + 1]
-    setFinalizer(self, finalizer)
+    numActive = numActive + 1
+    self = pool[numActive]
     _G.VECTOR2_KEEPALIVE[self.seq] = nil
   end
-  numActive = numActive + 1
+  setFinalizer(self, finalizer)
   self.x = x or 0
   self.y = y or 0
   self.dispatched = true

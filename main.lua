@@ -11,15 +11,15 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
   end
 end
 
-_G.SCALE_FACTOR = 1
-_G.VEC_POOL = 0
-_G.VEC_COUNT = 0
-
 local Character = require("library/Character")
 local EventBus = require("library/EventBus")
 local ProjectileManager = require("library/ProjectileManager")
 local ServiceLocator = require("library/ServiceLocator")
 local Vector2 = require("library/Vector2")
+
+_G.SCALE_FACTOR = 1
+_G.VEC_POOL = 0
+_G.VEC_CREATE = 0
 
 local eventBus = ServiceLocator:register(EventBus)
 local projectileManager = ServiceLocator:register(ProjectileManager)
@@ -58,9 +58,6 @@ function love.update(dt)
     _G.VECTOR2_SAVIOR[k] = nil
   end
 
-
-
-
   eventBus:emit("update", dt)
 
   projectileManager:evaluate(dt)
@@ -87,7 +84,7 @@ function love.draw()
 
   love.graphics.setColor(1, 1, 0)
   love.graphics.print(string.format("FPS: %d", 1/love.timer.getDelta()))
-  love.graphics.print(string.format("VEC_COUNT: %d", _G.VEC_COUNT), 0, 16)
+  love.graphics.print(string.format("VEC_CREATE: %d", _G.VEC_CREATE), 0, 16)
   love.graphics.print(string.format("VEC_POOL: %d", _G.VEC_POOL), 0, 32)
-  _G.VEC_COUNT = 0
+  _G.VEC_CREATE = 0
 end
