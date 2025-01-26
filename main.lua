@@ -18,8 +18,6 @@ local ServiceLocator = require("library/ServiceLocator")
 local Vector2 = require("library/Vector2")
 
 _G.SCALE_FACTOR = 1
-_G.VEC_POOL = 0
-_G.VEC_CREATE = 0
 
 local eventBus = ServiceLocator:register(EventBus)
 local projectileManager = ServiceLocator:register(ProjectileManager)
@@ -53,10 +51,6 @@ end
 
 function love.update(dt)
   collectgarbage("collect")
-  for k, v in pairs(_G.VECTOR2_SAVIOR) do
-    v:release()
-    _G.VECTOR2_SAVIOR[k] = nil
-  end
 
   eventBus:emit("update", dt)
 
@@ -85,6 +79,9 @@ function love.draw()
   love.graphics.setColor(1, 1, 0)
   love.graphics.print(string.format("FPS: %d", 1/love.timer.getDelta()))
   love.graphics.print(string.format("VEC_CREATE: %d", _G.VEC_CREATE), 0, 16)
-  love.graphics.print(string.format("VEC_POOL: %d", _G.VEC_POOL), 0, 32)
+  love.graphics.print(string.format("VEC_DISPATCH: %d", _G.VEC_DISPATCH), 0, 32)
+  love.graphics.print(string.format("VEC_POOL: %d", _G.VEC_POOL), 0, 48)
+  love.graphics.print(string.format("VEC_READY: %d", _G.VEC_READY), 0, 64)
   _G.VEC_CREATE = 0
+  _G.VEC_DISPATCH = 0
 end
