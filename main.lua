@@ -1,3 +1,4 @@
+collectgarbage("stop")
 if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
   local lldebugger = require("lldebugger")
   lldebugger.start()
@@ -51,6 +52,7 @@ function love.keypressed(key)
 end
 
 function love.update(dt)
+  collectgarbage("collect")
   for k, v in pairs(_G.VECTOR2_SAVIOR) do
     v:release()
     _G.VECTOR2_SAVIOR[k] = nil
