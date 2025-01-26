@@ -2,7 +2,7 @@
 ---@field private __index table
 ---@field private kind string
 ---@field services table
-ServiceLocator = {
+local ServiceLocator = {
   kind = "ServiceLocator",
   services = {},
 }
