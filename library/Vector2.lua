@@ -1,57 +1,27 @@
-local kind = require("library/Utils").kind
-local setFinalizer = require("library/Utils").setFinalizer
-local stringify = require("library/Utils").stringify
+local ffi = require("ffi")
+
+ffi.cdef[[
+typedef struct {
+  double x, y;
+} vec2_t;
+]]
+local vec2_t = ffi.typeof("vec2_t")
+vcreate = 0
 
 ---@class Vector2
----@field private __index Vector2
----@field private kind string
 ---@field x number
 ---@field y number
----@field private dispatched boolean
----@field private seq number
-local Vector2 = { kind = "Vector2" }
+local Vector2 = {}
 Vector2.__index = Vector2
-
-_G.VEC_CREATE = 0
-_G.VEC_DISPATCH = 0
-_G.VEC_POOL = 0
-_G.VEC_READY = 0
-
-local active = setmetatable({}, { __mode = "v" })
-local inactive = {}
-local seq = 0
-local finalizer = function(self)
-  self.dispatched = false
-  table.insert(inactive, self)
-  active[self.seq] = nil
-end
 
 ---@param x number
 ---@param y number
 ---@return Vector2 # The Vector2 data type represents a 2D value with direction and magnitude.
 function Vector2.new(x, y)
-  local self = nil
-  _G.VEC_DISPATCH = _G.VEC_DISPATCH + 1
-  if #inactive == 0 then
-    seq = seq + 1
-    _G.VEC_CREATE = _G.VEC_CREATE + 1
-    _G.VEC_POOL = seq
-    self = setmetatable({}, Vector2)
-    self.seq = seq
-  else
-    self = table.remove(inactive)
-    _G.VEC_READY = #inactive
-  end
-  active[self.seq] = self
-  setFinalizer(self, finalizer)
-  self.x = x or 0
-  self.y = y or 0
-  self.dispatched = true
-  return self
-end
-
-function Vector2:clone()
-  return Vector2.new(self:tuple())
+  vcreate = vcreate + 1
+  x = x or 0
+  y = y or 0
+  return vec2_t(x, y)
 end
 
 ---@return Vector2 # A Vector2 with a magnitude of zero.
@@ -189,61 +159,41 @@ function Vector2:min(...)
 end
 
 ---@private
-function Vector2.multiplyScalar(a, b)
-  return Vector2.new(a.x * b, a.y * b)
-end
-
----@private
-function Vector2.multiplyVector(a, b)
-  return Vector2.new(a.x * b.x, a.y * b.y)
-end
-
----@private
-function Vector2.divideScalar(a, b)
-  return Vector2.new(a.x / b, a.y / b)
-end
-
----@private
-function Vector2.divideVector(a, b)
-  return Vector2.new(a.x / b.x, a.y / b.y)
-end
-
----@private
 function Vector2.__add(a, b)
-  if kind(a) == "Vector2" or kind(b) == "Vector2" then
+  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
     return Vector2.new(a.x + b.x, a.y + b.y)
   end
-  error("Attempt to add " .. kind(a) .. " to " .. kind(b))
+  error("Attempt to add " .. type(a) .. " to " .. type(b))
 end
 
 ---@private
 function Vector2.__sub(a, b)
-  if kind(a) == "Vector2" or kind(b) == "Vector2" then
+  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
     return Vector2.new(a.x - b.x, a.y - b.y)
   end
-  error("Attempt to subtract " .. kind(b) .. " from " .. kind(a))
+  error("Attempt to subtract " .. type(b) .. " from " .. type(a))
 end
 
 ---@private
 function Vector2.__mul(a, b)
-  if kind(a) == "Vector2" and kind(b) == "Vector2" then
-    return Vector2.multiplyVector(a, b)
-  elseif kind(a) == "number" then
-    return Vector2.multiplyScalar(b, a)
-  elseif kind(b) == "number" then
-    return Vector2.multiplyScalar(a, b)
+  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
+    return Vector2.new(a.x * b.x, a.y * b.y)
+  elseif type(a) == "number" then
+    return Vector2.new(a * b.x, a * b.y)
+  elseif type(b) == "number" then
+    return Vector2.new(a.x * b, a.y * b)
   end
-  error("Attempt to multiply " .. kind(a) .. " with " .. kind(b))
+  error("Attempt to multiply " .. type(a) .. " with " .. type(b))
 end
 
 ---@private
 function Vector2.__div(a, b)
-  if kind(a) == "Vector2" and kind(b) == "Vector2" then
-    return Vector2.divideVector(a, b)
-  elseif kind(b) == "number" then
-    return Vector2.divideScalar(a, b)
+  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
+    return Vector2.new(a.x / b.x, a.y / b.y)
+  elseif type(b) == "number" then
+    return Vector2.new(a.x / b, a.y / b)
   end
-  error("Attempt to divide " .. kind(a) .. " by " .. kind(b))
+  error("Attempt to divide " .. type(a) .. " by " .. type(b))
 end
 
 ---@private
@@ -253,39 +203,41 @@ end
 
 ---@private
 function Vector2.__eq(a, b)
-  if kind(a) == "Vector2" and kind(b) == "Vector2" then
+  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
     return a.x == b.x and a.y == b.y
   end
-  error("Attempt to compare " .. kind(a) .. " with " .. kind(b))
+  error("Attempt to compare " .. type(a) .. " with " .. type(b))
 end
 
 ---@private
 function Vector2.__ne(a, b)
-  if kind(a) == "Vector2" and kind(b) == "Vector2" then
+  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
     return not Vector2.__eq(a, b)
   end
-  error("Attempt to compare " .. kind(a) .. " with " .. kind(b))
+  error("Attempt to compare " .. type(a) .. " with " .. type(b))
 end
 
 ---@private
 function Vector2.__lt(a, b)
-  if kind(a) == "Vector2" and kind(b) == "Vector2" then
+  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
     return a.x < b.x and a.y < b.y
   end
-  error("Attempt to compare " .. kind(a) .. " with " .. kind(b))
+  error("Attempt to compare " .. type(a) .. " with " .. type(b))
 end
 
 ---@private
 function Vector2.__le(a, b)
-  if kind(a) == "Vector2" and kind(b) == "Vector2" then
+  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
     return a.x <= b.x and a.y <= b.y
   end
-  error("Attempt to compare " .. kind(a) .. " with " .. kind(b))
+  error("Attempt to compare " .. type(a) .. " with " .. type(b))
 end
 
 ---@private
 function Vector2.__tostring(a)
-  return stringify(a)
+  return string.format("{ x = %s, y = %s }", tostring(a.x), tostring(a.y))
 end
+
+ffi.metatype("vec2_t", Vector2)
 
 return Vector2
