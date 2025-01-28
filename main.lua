@@ -78,10 +78,6 @@ function love.draw()
 
   love.graphics.setColor(1, 1, 0)
   love.graphics.print(string.format("FPS: %d", 1/love.timer.getDelta()))
-  love.graphics.print(string.format("VEC_CREATE: %d", _G.VEC_CREATE), 0, 16)
-  love.graphics.print(string.format("VEC_DISPATCH: %d", _G.VEC_DISPATCH), 0, 32)
-  love.graphics.print(string.format("VEC_POOL: %d", _G.VEC_POOL), 0, 48)
-  love.graphics.print(string.format("VEC_READY: %d", _G.VEC_READY), 0, 64)
-  _G.VEC_CREATE = 0
-  _G.VEC_DISPATCH = 0
+  love.graphics.print(string.format("vcreate: %d", vcreate), 0, 16)
+  vcreate = 0
 end
