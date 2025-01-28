@@ -6,7 +6,6 @@ typedef struct {
 } vec2_t;
 ]]
 local vec2_t = ffi.typeof("vec2_t")
-vcreate = 0
 
 ---@class Vector2
 ---@field x number
@@ -18,10 +17,9 @@ Vector2.__index = Vector2
 ---@param y number
 ---@return Vector2 # The Vector2 data type represents a 2D value with direction and magnitude.
 function Vector2.new(x, y)
-  vcreate = vcreate + 1
   x = x or 0
   y = y or 0
-  return vec2_t(x, y)
+  return vec2_t(x, y) ---@type Vector2
 end
 
 ---@return Vector2 # A Vector2 with a magnitude of zero.
