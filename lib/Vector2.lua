@@ -2,11 +2,16 @@ local kind = require ("lib.Utils").kind
 local ffi = require "ffi"
 
 ffi.cdef[[
-typedef struct {
+typedef struct Vector2 Vector2;
+typedef struct Vector2State Vector2State;
+typedef struct Vector2Handle Vector2Handle;
+
+struct Vector2 {
   double x, y;
 } vector2_t;
 ]]
 local vector2_t = ffi.typeof("vector2_t")
+
 
 ---@class Vector2
 ---@field x number
@@ -233,8 +238,13 @@ function Vector2.__le(a, b)
 end
 
 ---@private
-function Vector2.__tostring(a)
-  return string.format("{ x = %s, y = %s }", tostring(a.x), tostring(a.y))
+function Vector2:__index(key)
+  assert(self.__handle.generation == state.generation[self.__handle.id])
+  local get = rawget(Vector2, key)
+  if get then
+    return get
+  end
+  return state.ptr_pool[self.__handle.id][key]
 end
 
 ffi.metatype("vector2_t", Vector2)
