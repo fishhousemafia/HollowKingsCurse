@@ -18,7 +18,6 @@ function ProjectileManager:evaluate(dt)
     projectile:evaluate(dt)
     if not projectile.active then
       table.remove(self.pool, idx)
-      projectile:reset()
     end
   end
 end

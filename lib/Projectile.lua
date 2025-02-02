@@ -54,8 +54,4 @@ function Projectile:clone()
   return Projectile.new(self.parent, self.activate, self.evaluate)
 end
 
-function Projectile:reset()
-  self.parent:returnProjectile(self)
-end
-
 return Projectile
