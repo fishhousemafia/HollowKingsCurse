@@ -2,7 +2,7 @@ local Vector2 = require "lib.Vector2"
 
 ---@class Projectile
 ---@field private __index Projectile
----@field private kind string
+---@field private __kind string
 ---@field parent Weapon
 ---@field activate function
 ---@field evaluate function

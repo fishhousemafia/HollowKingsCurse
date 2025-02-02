@@ -5,7 +5,7 @@ local eventBus = ServiceLocator:get("EventBus")
 
 ---@class Weapon
 ---@field private __index Weapon
----@field private kind string
+---@field private __kind string
 ---@field parent Character
 ---@field projectile Projectile
 ---@field pool Projectile[]

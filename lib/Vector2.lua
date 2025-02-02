@@ -8,42 +8,16 @@ typedef struct Vector2Handle Vector2Handle;
 
 struct Vector2 {
   double x, y;
-  int id;
-  int index;
-};
-
-struct Vector2State {
-  bool closing;
-  int id_ptr;
-  int stack_ptr;
-  int *free_ids;
-  int *generation;
-  Vector2 *vec2_pool;
-  Vector2 **ptr_pool;
-};
-
-struct Vector2Handle {
-  int id;
-  int generation;
-  Vector2State *state;
-};
-
-Vector2State* init(int size);
-void requestClose(Vector2State *state);
-Vector2Handle allocate(Vector2State *state, double x, double y);
-void release(Vector2Handle *h);
-void free(void *ptr);
+} vector2_t;
 ]]
+local vector2_t = ffi.typeof("vector2_t")
 
-local libvector2 = ffi.load("ffi/libvector2.so")
-local state = libvector2.init(100000)
-ffi.gc(state, function(c) libvector2.requestClose(c) end)
 
 ---@class Vector2
 ---@field x number
 ---@field y number
----@field private __handle ffi.ctype*
 local Vector2 = { __kind = "Vector2" }
+Vector2.__index = Vector2
 
 ---@param x number
 ---@param y number
@@ -51,9 +25,7 @@ local Vector2 = { __kind = "Vector2" }
 function Vector2.new(x, y)
   x = x or 0
   y = y or 0
-  local handle = libvector2.allocate(state, x, y)
-  ffi.gc(handle, function(c) libvector2.release(c) end)
-  return setmetatable({ __handle = handle }, Vector2)
+  return vector2_t(x, y) ---@type Vector2
 end
 
 ---@return Vector2 # A Vector2 with a magnitude of zero.
@@ -275,28 +247,6 @@ function Vector2:__index(key)
   return state.ptr_pool[self.__handle.id][key]
 end
 
----@private
-function Vector2:__newindex(key, value)
-  assert(self.__handle.generation == state.generation[self.__handle.id])
-  local get = rawget(self, key)
-  if get then
-    rawset(self, key, value)
-  else
-    state.ptr_pool[self.__handle.id][key] = value
-  end
-end
-
----@private
-function Vector2:__tostring()
-  assert(self.__handle.generation == state.generation[self.__handle.id])
-  return string.format(
-    "{idx=%d, x=%f, y=%f} {id=%d, gen=%d}",
-    state.ptr_pool[self.__handle.id].index,
-    state.ptr_pool[self.__handle.id].x,
-    state.ptr_pool[self.__handle.id].y,
-    self.__handle.id,
-    self.__handle.generation
-  )
-end
+ffi.metatype("vector2_t", Vector2)
 
 return Vector2

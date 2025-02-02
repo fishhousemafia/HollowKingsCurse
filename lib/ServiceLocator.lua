@@ -1,6 +1,6 @@
 ---@class ServiceLocator
 ---@field private __index table
----@field private kind string
+---@field private __kind string
 ---@field services table
 local ServiceLocator = {
   __kind = "ServiceLocator",
