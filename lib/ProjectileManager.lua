@@ -1,8 +1,6 @@
 ---@class ProjectileManager
 ---@field pool Projectile[]
-local ProjectileManager = {
-  __kind = "ProjectileManager"
-}
+local ProjectileManager = { __kind = "ProjectileManager" }
 ProjectileManager.__index = ProjectileManager
 
 function ProjectileManager.new()
