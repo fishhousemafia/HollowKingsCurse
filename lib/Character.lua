@@ -9,7 +9,7 @@ local eventBus = ServiceLocator:get("EventBus")
 ---@field private kind string
 ---@field position Vector2
 ---@field weapon Weapon
-local Character = { kind = "Character" }
+local Character = { __kind = "Character" }
 Character.__index = Character
 
 ---@return Character
