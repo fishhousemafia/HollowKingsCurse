@@ -74,5 +74,5 @@ function love.draw()
   end
 
   love.graphics.setColor(1, 1, 0)
-  love.graphics.print(string.format("FPS: %d", 1/love.timer.getDelta()))
+  love.graphics.print(string.format("FPS: %d", love.timer.getFPS()))
 end

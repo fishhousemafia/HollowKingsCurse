@@ -1,7 +1,7 @@
 ---@class ProjectileManager
 ---@field pool Projectile[]
 local ProjectileManager = {
-  kind = "ProjectileManager"
+  __kind = "ProjectileManager"
 }
 ProjectileManager.__index = ProjectileManager
 

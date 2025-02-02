@@ -1,8 +1,8 @@
 ---@class MessageQueue
 ---@field private __index MessageQueue
----@field private kind string
+---@field private __kind string
 ---@field queues table
-local MessageQueue = { kind = "MessageQueue" }
+local MessageQueue = { __kind = "MessageQueue" }
 MessageQueue.__index = MessageQueue
 
 ---@return MessageQueue
