@@ -1,8 +1,8 @@
 ---@class EventBus
 ---@field private __index EventBus
----@field private kind string
+---@field private __kind string
 ---@field listeners table
-local EventBus = { kind = "EventBus" }
+local EventBus = { __kind = "EventBus" }
 EventBus.__index = EventBus
 
 ---@return EventBus

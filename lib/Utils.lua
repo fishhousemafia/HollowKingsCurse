@@ -1,8 +1,9 @@
 local Utils = {}
 
 function Utils.kind(o)
-  if type(o) == "table" then
-    return o.kind or type(o)
+  local t = type(o)
+  if t == "table" or t == "cdata" then
+    return o.__kind or type(o)
   end
   return type(o)
 end

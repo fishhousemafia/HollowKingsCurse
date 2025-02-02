@@ -2,7 +2,7 @@ local Vector2 = require "lib.Vector2"
 
 ---@class Projectile
 ---@field private __index Projectile
----@field private kind string
+---@field private __kind string
 ---@field parent Weapon
 ---@field activate function
 ---@field evaluate function
@@ -11,9 +11,7 @@ local Vector2 = require "lib.Vector2"
 ---@field source Vector2
 ---@field position Vector2
 ---@field destination Vector2
-local Projectile = {
-  kind = "Projectile"
-}
+local Projectile = { __kind = "Projectile" }
 Projectile.__index = Projectile
 
 local function dActivate(self, source, destination)

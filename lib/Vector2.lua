@@ -1,16 +1,17 @@
-local ffi = require("ffi")
+local kind = require ("lib.Utils").kind
+local ffi = require "ffi"
 
 ffi.cdef[[
 typedef struct {
   double x, y;
-} vec2_t;
+} vector2_t;
 ]]
-local vec2_t = ffi.typeof("vec2_t")
+local vector2_t = ffi.typeof("vector2_t")
 
 ---@class Vector2
 ---@field x number
 ---@field y number
-local Vector2 = {}
+local Vector2 = { __kind = "Vector2" }
 Vector2.__index = Vector2
 
 ---@param x number
@@ -19,7 +20,7 @@ Vector2.__index = Vector2
 function Vector2.new(x, y)
   x = x or 0
   y = y or 0
-  return vec2_t(x, y) ---@type Vector2
+  return vector2_t(x, y) ---@type Vector2
 end
 
 ---@return Vector2 # A Vector2 with a magnitude of zero.
@@ -158,40 +159,40 @@ end
 
 ---@private
 function Vector2.__add(a, b)
-  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
+  if kind(a) == "Vector2" and kind(b) == "Vector2" then
     return Vector2.new(a.x + b.x, a.y + b.y)
   end
-  error("Attempt to add " .. type(a) .. " to " .. type(b))
+  error("Attempt to add " .. kind(a) .. " to " .. kind(b))
 end
 
 ---@private
 function Vector2.__sub(a, b)
-  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
+  if kind(a) == "Vector2" and kind(b) == "Vector2" then
     return Vector2.new(a.x - b.x, a.y - b.y)
   end
-  error("Attempt to subtract " .. type(b) .. " from " .. type(a))
+  error("Attempt to subtract " .. kind(b) .. " from " .. kind(a))
 end
 
 ---@private
 function Vector2.__mul(a, b)
-  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
+  if kind(a) == "Vector2" and kind(b) == "Vector2" then
     return Vector2.new(a.x * b.x, a.y * b.y)
-  elseif type(a) == "number" then
+  elseif kind(a) == "number" then
     return Vector2.new(a * b.x, a * b.y)
-  elseif type(b) == "number" then
+  elseif kind(b) == "number" then
     return Vector2.new(a.x * b, a.y * b)
   end
-  error("Attempt to multiply " .. type(a) .. " with " .. type(b))
+  error("Attempt to multiply " .. kind(a) .. " with " .. kind(b))
 end
 
 ---@private
 function Vector2.__div(a, b)
-  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
+  if kind(a) == "Vector2" and kind(b) == "Vector2" then
     return Vector2.new(a.x / b.x, a.y / b.y)
-  elseif type(b) == "number" then
+  elseif kind(b) == "number" then
     return Vector2.new(a.x / b, a.y / b)
   end
-  error("Attempt to divide " .. type(a) .. " by " .. type(b))
+  error("Attempt to divide " .. kind(a) .. " by " .. kind(b))
 end
 
 ---@private
@@ -201,34 +202,34 @@ end
 
 ---@private
 function Vector2.__eq(a, b)
-  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
+  if kind(a) == "Vector2" and kind(b) == "Vector2" then
     return a.x == b.x and a.y == b.y
   end
-  error("Attempt to compare " .. type(a) .. " with " .. type(b))
+  error("Attempt to compare " .. kind(a) .. " with " .. kind(b))
 end
 
 ---@private
 function Vector2.__ne(a, b)
-  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
+  if kind(a) == "Vector2" and kind(b) == "Vector2" then
     return not Vector2.__eq(a, b)
   end
-  error("Attempt to compare " .. type(a) .. " with " .. type(b))
+  error("Attempt to compare " .. kind(a) .. " with " .. kind(b))
 end
 
 ---@private
 function Vector2.__lt(a, b)
-  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
+  if kind(a) == "Vector2" and kind(b) == "Vector2" then
     return a.x < b.x and a.y < b.y
   end
-  error("Attempt to compare " .. type(a) .. " with " .. type(b))
+  error("Attempt to compare " .. kind(a) .. " with " .. kind(b))
 end
 
 ---@private
 function Vector2.__le(a, b)
-  if ffi.istype("vec2_t", a) and ffi.istype("vec2_t", b) then
+  if kind(a) == "Vector2" and kind(b) == "Vector2" then
     return a.x <= b.x and a.y <= b.y
   end
-  error("Attempt to compare " .. type(a) .. " with " .. type(b))
+  error("Attempt to compare " .. kind(a) .. " with " .. kind(b))
 end
 
 ---@private
@@ -236,6 +237,6 @@ function Vector2.__tostring(a)
   return string.format("{ x = %s, y = %s }", tostring(a.x), tostring(a.y))
 end
 
-ffi.metatype("vec2_t", Vector2)
+ffi.metatype("vector2_t", Vector2)
 
 return Vector2
