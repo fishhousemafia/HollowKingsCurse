@@ -10,11 +10,11 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
   end
 end
 
-local Character = require("library/Character")
-local EventBus = require("library/EventBus")
-local ProjectileManager = require("library/ProjectileManager")
-local ServiceLocator = require("library/ServiceLocator")
-local Vector2 = require("library/Vector2")
+local Character = require "lib.Character"
+local EventBus = require "lib.EventBus"
+local ProjectileManager = require "lib.ProjectileManager"
+local ServiceLocator = require "lib.ServiceLocator"
+local Vector2 = require "lib.Vector2"
 
 _G.SCALE_FACTOR = 1
 
