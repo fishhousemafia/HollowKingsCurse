@@ -1,5 +1,5 @@
-local ServiceLocator = require("library/ServiceLocator")
-local Projectile = require("library/Projectile")
+local ServiceLocator = require "lib.ServiceLocator"
+local Projectile = require "lib.Projectile"
 
 local eventBus = ServiceLocator:get("EventBus")
 

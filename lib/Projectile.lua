@@ -1,4 +1,4 @@
-local Vector2 = require("library/Vector2")
+local Vector2 = require "lib.Vector2"
 
 ---@class Projectile
 ---@field private __index Projectile

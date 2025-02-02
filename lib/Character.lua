@@ -1,6 +1,6 @@
-local ServiceLocator = require("library/ServiceLocator")
-local Vector2 = require("library/Vector2")
-local Weapon = require("library/Weapon")
+local ServiceLocator = require "lib.ServiceLocator"
+local Vector2 = require "lib.Vector2"
+local Weapon = require "lib.Weapon"
 
 local eventBus = ServiceLocator:get("EventBus")
 
