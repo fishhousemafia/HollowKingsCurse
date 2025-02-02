@@ -1,3 +1,4 @@
+collectgarbage("stop")
 if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
   local lldebugger = require("lldebugger")
   lldebugger.start()
@@ -49,6 +50,8 @@ function love.keypressed(key)
 end
 
 function love.update(dt)
+  collectgarbage("collect")
+
   eventBus:emit("update", dt)
 
   projectileManager:evaluate(dt)
@@ -74,5 +77,5 @@ function love.draw()
   end
 
   love.graphics.setColor(1, 1, 0)
-  love.graphics.print(string.format("FPS: %d", 1/love.timer.getDelta()))
+  love.graphics.print(string.format("FPS: %d", love.timer.getFPS()))
 end

@@ -2,7 +2,7 @@ local Utils = {}
 
 function Utils.kind(o)
   if type(o) == "table" then
-    return o.kind or type(o)
+    return o.__kind or type(o)
   end
   return type(o)
 end
