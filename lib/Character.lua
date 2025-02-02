@@ -5,7 +5,6 @@ local Weapon = require "lib.Weapon"
 local eventBus = ServiceLocator:get("EventBus")
 
 ---@class Character
----@field private __index Character
 ---@field private __kind string
 ---@field position Vector2
 ---@field weapon Weapon

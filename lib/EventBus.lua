@@ -1,5 +1,4 @@
 ---@class EventBus
----@field private __index EventBus
 ---@field private __kind string
 ---@field listeners table
 local EventBus = { __kind = "EventBus" }

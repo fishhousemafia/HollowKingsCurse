@@ -4,7 +4,6 @@ local Projectile = require "lib.Projectile"
 local eventBus = ServiceLocator:get("EventBus")
 
 ---@class Weapon
----@field private __index Weapon
 ---@field private __kind string
 ---@field parent Character
 ---@field projectile Projectile
