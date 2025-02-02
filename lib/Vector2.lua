@@ -2,11 +2,8 @@ local kind = require ("lib.Utils").kind
 local ffi = require "ffi"
 
 ffi.cdef[[
-typedef struct Vector2 Vector2;
-typedef struct Vector2State Vector2State;
-typedef struct Vector2Handle Vector2Handle;
 
-struct Vector2 {
+typedef struct {
   double x, y;
 } vector2_t;
 ]]
@@ -90,8 +87,7 @@ end
 
 ---@return Vector2 # Returns a new vector from the sign (-1, 0, or 1) of the original's components.
 function Vector2:sign()
-  local x = 0
-  local y = 0
+  local x, y = 0, 0
   if self.x < 0 then
     x = -1
   elseif self.x > 0 then
@@ -235,16 +231,6 @@ function Vector2.__le(a, b)
     return a.x <= b.x and a.y <= b.y
   end
   error("Attempt to compare " .. kind(a) .. " with " .. kind(b))
-end
-
----@private
-function Vector2:__index(key)
-  assert(self.__handle.generation == state.generation[self.__handle.id])
-  local get = rawget(Vector2, key)
-  if get then
-    return get
-  end
-  return state.ptr_pool[self.__handle.id][key]
 end
 
 ffi.metatype("vector2_t", Vector2)
