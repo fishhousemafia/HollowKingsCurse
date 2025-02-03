@@ -158,6 +158,16 @@ function Vector2:min(...)
   return Vector2.new(xMin, yMin)
 end
 
+---@param other Vector2
+function Vector2:toObjectSpace(other)
+  return other - self
+end
+
+---@param other Vector2
+function Vector2:toWorldSpace(other)
+  return other + self
+end
+
 ---@private
 function Vector2.__add(a, b)
   if kind(a) == "Vector2" and kind(b) == "Vector2" then
