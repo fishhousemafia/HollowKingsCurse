@@ -17,6 +17,7 @@ local ServiceLocator = require "lib.ServiceLocator"
 local Vector2 = require "lib.Vector2"
 
 _G.SCALE_FACTOR = 1
+_G.VPF = 0
 
 local eventBus = ServiceLocator:register(EventBus)
 local projectileManager = ServiceLocator:register(ProjectileManager)
@@ -24,7 +25,6 @@ local gameDimensions = Vector2.new(320, 240)
 local hero = Character.new(gameDimensions / 2)
 local lastAttack = nil
 local camera = Vector2.zero()
-local center = (gameDimensions / 2):floor()
 
 local function loadMap(file)
   io.input(file)
@@ -46,7 +46,6 @@ local function loadMap(file)
   end
   return mapData
 end
-
 local map = loadMap("assets/basic.map")
 
 function love.load()
@@ -75,7 +74,6 @@ end
 
 function love.update(dt)
   eventBus:emit("update", dt)
-
   projectileManager:evaluate(dt)
 end
 
@@ -83,6 +81,10 @@ function love.draw()
   camera = (hero.position - gameDimensions / 2):floor()
 
   for _, row in ipairs(map) do
+    if row.x + row.w < camera.x or row.y + row.h < camera.y or
+       row.x > camera.x + gameDimensions.x or row.y > camera.y + gameDimensions.y then
+      goto continue
+    end
     local point = camera:toObjectSpace(Vector2.new(row.x, row.y))
     local x = point.x * _G.SCALE_FACTOR
     local y = point.y * _G.SCALE_FACTOR
@@ -90,6 +92,7 @@ function love.draw()
     local h = row.h * _G.SCALE_FACTOR
     love.graphics.setColor(row.r, row.g, row.b)
     love.graphics.rectangle("fill", x, y, w, h)
+    ::continue::
   end
 
   love.graphics.setColor(1, 1, 1)
@@ -112,5 +115,7 @@ function love.draw()
 
   love.graphics.setColor(1, 1, 0)
   love.graphics.print(string.format("FPS: %d", love.timer.getFPS()))
-
+  love.graphics.print(string.format("VPF: %d", _G.VPF), 0, 12)
+  love.graphics.print(string.format("x: %d y: %d", hero.position.x, hero.position.y), 0, 24)
+  _G.VPF = 0
 end

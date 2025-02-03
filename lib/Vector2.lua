@@ -2,7 +2,6 @@ local kind = require ("lib.Utils").kind
 local ffi = require "ffi"
 
 ffi.cdef[[
-
 typedef struct {
   double x, y;
 } vector2_t;
@@ -20,6 +19,7 @@ Vector2.__index = Vector2
 ---@param y number
 ---@return Vector2 # The Vector2 data type represents a 2D value with direction and magnitude.
 function Vector2.new(x, y)
+  _G.VPF = _G.VPF + 1
   x = x or 0
   y = y or 0
   return vector2_t(x, y) ---@type Vector2
