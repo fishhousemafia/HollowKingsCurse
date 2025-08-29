@@ -49,6 +49,7 @@ end
 local map = loadMap("assets/basic.map")
 
 function love.load()
+  love.graphics.setDefaultFilter("nearest", "nearest")
   local desktopDimensions = Vector2.new(love.window.getDesktopDimensions(1))
   local scaled = (desktopDimensions / gameDimensions):floor()
   _G.SCALE_FACTOR = math.min(scaled:tuple()) - 1
@@ -64,6 +65,59 @@ function love.load()
     projectileManager:add(projectile)
   end)
 
+  local function loadAssets(directory)
+    local assetFiles = {}
+    local i = 1
+    local pfile = io.popen('find "' .. directory .. '" -name *.png')
+    for filename in pfile:lines() do
+      assetFiles[i] = filename
+      i = i + 1
+    end
+    pfile:close()
+
+    local assets = {}
+    for _, filename in ipairs(assetFiles) do
+      local start = string.find(filename, "/[^/]*$")
+      local stop = string.find(filename, ".png$")
+      assets[string.sub(filename, start + 1, stop - 1)] = love.image.newImageData(filename)
+    end
+    return assets
+  end
+  local sprites = loadAssets("assets/sprites")
+
+  -- TODO create an Animation class
+  local function newAnimation(imageData, width, height, duration)
+    local animation = {}
+    animation.spriteSheet = love.graphics.newImage(imageData)
+    animation.quads = {};
+    animation.duration = duration
+    animation.currentTime = 0
+    animation.animIdx = 1
+    animation.animId = 1
+
+    for y = 0, imageData:getHeight() - height, height do
+      local row = {}
+      for x = 0, imageData:getWidth() - width, width do
+        local isEmpty = true
+        for yy = y, height + y - 1 do
+          for xx = x, width + x - 1 do
+            local r, g, b, a = imageData:getPixel(xx, yy)
+            if (r ~= 0 or g ~= 0 or b ~= 0) and a > 0 then
+              isEmpty = false
+            end
+          end
+        end
+        if not isEmpty then
+          table.insert(row, love.graphics.newQuad(x, y, width, height, imageData:getDimensions()))
+        end
+      end
+      table.insert(animation.quads, row)
+    end
+    animation.currentQuad = animation.quads[1][1]
+
+    return animation
+  end
+  hero.animation = newAnimation(sprites["hero"], 8, 8, 0.333)
 end
 
 function love.keypressed(key)
@@ -82,7 +136,7 @@ function love.draw()
 
   for _, row in ipairs(map) do
     if row.x + row.w < camera.x or row.y + row.h < camera.y or
-       row.x > camera.x + gameDimensions.x or row.y > camera.y + gameDimensions.y then
+      row.x > camera.x + gameDimensions.x or row.y > camera.y + gameDimensions.y then
       goto continue
     end
     local point = camera:toObjectSpace(Vector2.new(row.x, row.y))
@@ -97,15 +151,9 @@ function love.draw()
 
   love.graphics.setColor(1, 1, 1)
   local x, y = (camera:toObjectSpace(hero.position):floor() * _G.SCALE_FACTOR):tuple()
-  local w, h = (Vector2.new(8, 8) * _G.SCALE_FACTOR):tuple()
-  love.graphics.rectangle("fill", x, y, w, h)
-
-  love.graphics.setColor(1, 0, 0)
-  if lastAttack then
-    local x1, y1 = (camera:toObjectSpace(lastAttack.source):floor() * _G.SCALE_FACTOR):tuple()
-    local x2, y2 = (camera:toObjectSpace(lastAttack.destination):floor() * _G.SCALE_FACTOR):tuple()
-    love.graphics.line(x1, y1, x2, y2)
-  end
+  local _, _, w, h = hero.animation.currentQuad:getViewport()
+  w, h = w * _G.SCALE_FACTOR, h * _G.SCALE_FACTOR
+  love.graphics.draw(hero.animation.spriteSheet, hero.animation.currentQuad, x-(w/2), y-(h/2), 0, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
 
   for projectile in projectileManager:iterate() do
     x, y = (camera:toObjectSpace(projectile.position):floor() * _G.SCALE_FACTOR):tuple()
