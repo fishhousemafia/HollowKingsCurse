@@ -1,0 +1,52 @@
+---@class Animation
+---@field private __kind string
+---@field imageData love.ImageData
+---@field width number
+---@field height number
+---@field duration number
+---@field spriteSheet love.Image
+---@field quads love.Quad[]
+---@field currentTime number
+---@field animIdx number
+---@field animId number
+---@field currentQuad love.Quad
+local Animation = { __kind = "Character" }
+Animation.__index = Animation
+
+---@return Animation
+function Animation.new(imageData, width, height, duration)
+  local self = setmetatable({}, Animation)
+  self.imageData = imageData
+  self.width = width
+  self.height = height
+  self.duration = duration
+  self.spriteSheet = love.graphics.newImage(imageData)
+  self.quads = {};
+  self.currentTime = 0
+  self.animIdx = 1
+  self.animId = 1
+
+  for y = 0, self.imageData:getHeight() - height, height do
+    local row = {}
+    for x = 0, self.imageData:getWidth() - width, width do
+      local isEmpty = true
+      for yy = y, self.height + y - 1 do
+        for xx = x, self.width + x - 1 do
+          local r, g, b, a = self.imageData:getPixel(xx, yy)
+          if (r ~= 0 or g ~= 0 or b ~= 0) and a > 0 then
+            isEmpty = false
+          end
+        end
+      end
+      if not isEmpty then
+        table.insert(row, love.graphics.newQuad(x, y, self.width, self.height, self.imageData:getDimensions()))
+      end
+    end
+    table.insert(self.quads, row)
+  end
+  self.currentQuad = self.quads[1][1]
+
+  return self
+end
+
+return Animation
