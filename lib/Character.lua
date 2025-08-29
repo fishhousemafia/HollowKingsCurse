@@ -57,7 +57,7 @@ function Character:onUpdate(dt)
     move = move + Vector2.new(1, 0)
   end
   if string.find(self.animState, "walk") and not (love.keyboard.isDown("w") or love.keyboard.isDown("s") or love.keyboard.isDown("a") or love.keyboard.isDown("d")) then
-    self.animState = "stand_down"
+    self.animState = "stand"
     self.animation.animId = self.animation.animId - 1
     self.animation.animIdx = 1
     self.animation.currentTime = 0
