@@ -2,7 +2,7 @@ local ServiceLocator = require "lib.ServiceLocator"
 local Vector2 = require "lib.Vector2"
 local Weapon = require "lib.Weapon"
 
-local eventBus = ServiceLocator:get("EventBus")
+local eventBus = ServiceLocator:try_get("EventBus")
 
 ---@class Character
 ---@field private __kind string
@@ -57,8 +57,8 @@ function Character:onUpdate(dt)
     move = move + Vector2.new(1, 0)
   end
   if string.find(self.animState, "walk") and not (love.keyboard.isDown("w") or love.keyboard.isDown("s") or love.keyboard.isDown("a") or love.keyboard.isDown("d")) then
-    self.animState = "stand"
-    self.animation.animId = self.animation.animId - 1
+    self.animState = self.animState:gsub("^walk", "stand")
+    self.animation.animId = self.animMap[self.animState]
     self.animation.animIdx = 1
     self.animation.currentTime = 0
     self.animation.currentQuad = self.animation.quads[self.animation.animId][self.animation.animIdx]
@@ -67,7 +67,7 @@ function Character:onUpdate(dt)
     eventBus:emit("attackRequest", {
       source = self.position,
       destination = Vector2.new(love.mouse.getPosition()) / _G.SCALE_FACTOR,
-      self.weapon,
+      weapon = self.weapon,
     })
   end
   self.position = self.position + move:unit() * (speed * dt)

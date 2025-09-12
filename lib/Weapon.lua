@@ -1,7 +1,7 @@
 local ServiceLocator = require "lib.ServiceLocator"
 local Projectile = require "lib.Projectile"
 
-local eventBus = ServiceLocator:get("EventBus")
+local eventBus = ServiceLocator:try_get("EventBus")
 
 ---@class Weapon
 ---@field private __kind string
