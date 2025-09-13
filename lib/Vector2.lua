@@ -1,13 +1,4 @@
 local kind = require ("lib.Utils").kind
-local ffi = require "ffi"
-
-ffi.cdef[[
-typedef struct {
-  double x, y;
-} vector2_t;
-]]
-local vector2_t = ffi.typeof("vector2_t")
-
 
 ---@class Vector2
 ---@field x number
@@ -19,10 +10,11 @@ Vector2.__index = Vector2
 ---@param y number
 ---@return Vector2 # The Vector2 data type represents a 2D value with direction and magnitude.
 function Vector2.new(x, y)
+  local self = setmetatable({}, Vector2)
   _G.VPF = _G.VPF + 1
-  x = x or 0
-  y = y or 0
-  return vector2_t(x, y) ---@type Vector2
+  self.x = x or 0
+  self.y = y or 0
+  return self
 end
 
 ---@return Vector2 # A Vector2 with a magnitude of zero.
@@ -242,7 +234,5 @@ function Vector2.__le(a, b)
   end
   error("Attempt to compare " .. kind(a) .. " with " .. kind(b))
 end
-
-ffi.metatype("vector2_t", Vector2)
 
 return Vector2

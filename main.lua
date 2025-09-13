@@ -29,17 +29,43 @@ _G.VPF = 0
 local gameDimensions = Vector2.new(320, 240)
 local hero = Character.new(gameDimensions / 2)
 local camera = Vector2.zero()
-
-local mapData = require "assets.map"
-local mapTiles = love.graphics.newImage("assets/sprites/map_tiles.png")
 local sprites = {}
+local scene = {}
+local crtShader = {}
 
 function love.load()
-  love.graphics.setDefaultFilter("nearest", "nearest")
   local desktopDimensions = Vector2.new(love.window.getDesktopDimensions(1))
   local scaled = (desktopDimensions / gameDimensions):floor()
   _G.SCALE_FACTOR = math.min(scaled:tuple()) - 1
-  love.window.setMode((gameDimensions * _G.SCALE_FACTOR):tuple())
+  love.window.setMode(gameDimensions.x * _G.SCALE_FACTOR, gameDimensions.y * _G.SCALE_FACTOR, { resizable = false, minwidth = 640, minheight = 480 })
+  love.graphics.setDefaultFilter("nearest", "nearest")
+
+  --scene = love.graphics.newCanvas(gameDimensions.x, gameDimensions.y, { dpiscale = 1 })
+  --scene:setFilter("nearest", "nearest")
+
+  --local shaderParams = {
+  --  texSize = { gameDimensions.x, gameDimensions.y },
+  --  outSize = { gameDimensions.x * _G.SCALE_FACTOR, gameDimensions.y * _G.SCALE_FACTOR },
+  --  CURVATURE_X = 0.10,
+  --  CURVATURE_Y = 0.15,
+  --  MASK_BRIGHTNESS = 0.70,
+  --  SCANLINE_WEIGHT = 0.60,
+  --  SCANLINE_GAP_BRIGHTNESS = 0.12,
+  --  BLOOM_FACTOR = 1.5,
+  --  INPUT_GAMMA = 2.4,
+  --  OUTPUT_GAMMA = 2.2,
+  --  MASK_TYPE = 2.0,
+  --  ENABLE_SCANLINES = 1.0,
+  --  ENABLE_GAMMA = 1.0,
+  --  ENABLE_FAKE_GAMMA = 1.0,
+  --  ENABLE_CURVATURE = 0.0,
+  --  ENABLE_SHARPER = 0.0,
+  --  ENABLE_MULTISAMPLE = 1.0,
+  --}
+  --crtShader = love.graphics.newShader("crt.glsl")
+  --for k, v in pairs(shaderParams) do
+  --  crtShader:send(k, v)
+  --end
 
   eventBus:subscribe("attackRequest", function(attackVectors)
     attackVectors.destination = camera:toWorldSpace(attackVectors.destination)
@@ -72,7 +98,6 @@ function love.load()
     return assets
   end
   sprites = loadAssets("assets/sprites")
-  mapTiles = love.graphics.newImage(sprites["map_tiles"])
 
   hero.animation = Animation.new(sprites["hero"], 8, 8, 0.333)
 
@@ -97,49 +122,38 @@ end
 function love.draw()
   camera = (hero.position - gameDimensions / 2):floor()
 
-  --for world_y, row in ipairs(mapData) do
-  --  for world_x, cell in ipairs(row) do
-  --    local w = 8
-  --    local h = 8
-  --    local x = (8 * world_x) - 8
-  --    local y = (8 * world_y) - 8
-  --    if x + w < camera.x or y + h < camera.y or
-  --      x > camera.x + gameDimensions.x or y > camera.y + gameDimensions.y then
-  --      goto continue
-  --    end
-  --    local point = camera:toObjectSpace(Vector2.new(x, y))
-  --    local img_x, img_y = (cell[1] * 8) - 8, (cell[2] * 8) - 8
-  --    local quad = love.graphics.newQuad(img_x, img_y, 8, 8, sprites["map_tiles"]:getDimensions())
-  --    x = point.x * _G.SCALE_FACTOR
-  --    y = point.y * _G.SCALE_FACTOR
-  --    love.graphics.draw(mapTiles, quad, x, y, 0, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
-  --    ::continue::
-  --  end
-  --end
+  --love.graphics.setCanvas(scene)
+  love.graphics.clear(0.05, 0.05, 0.06, 1)
 
+  love.graphics.setColor(1, 1, 1, 1)
+  Map:draw(-camera.x, -camera.y)
 
-  love.graphics.setColor(1, 1, 1)
-  Map:draw(-camera.x, -camera.y, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
+  love.graphics.setColor(1, 0, 0, 1)
+  Map:box2d_draw(-camera.x, -camera.y)
 
-  love.graphics.setColor(1, 0, 0)
-  Map:box2d_draw(-camera.x, -camera.y, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
-
-  love.graphics.setColor(1, 1, 1)
-  local x, y = (camera:toObjectSpace(hero.position):floor() * _G.SCALE_FACTOR):tuple()
+  love.graphics.setColor(1, 1, 1, 1)
+  local x, y = camera:toObjectSpace(hero.position):floor():tuple()
   local _, _, w, h = hero.animation.currentQuad:getViewport()
-  w, h = w * _G.SCALE_FACTOR, h * _G.SCALE_FACTOR
-  love.graphics.draw(hero.animation.spriteSheet, hero.animation.currentQuad, x-(w/2), y-(h/2), 0, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
-
+  love.graphics.draw(hero.animation.spriteSheet, hero.animation.currentQuad, x-(w/2), y-(h/2), 0)
 
   for projectile in projectileManager:iterate() do
-    x, y = (camera:toObjectSpace(projectile.position):floor() * _G.SCALE_FACTOR):tuple()
-    w, h = _G.SCALE_FACTOR, _G.SCALE_FACTOR
+    x, y = camera:toObjectSpace(projectile.position):floor():tuple()
+    w, h = 1, 1
     love.graphics.rectangle("fill", x, y, w, h)
   end
 
-  love.graphics.setColor(1, 1, 0)
+  love.graphics.setColor(1, 0, 0, 1)
   love.graphics.print(string.format("FPS: %d", love.timer.getFPS()))
   love.graphics.print(string.format("VPF: %d", _G.VPF), 0, 12)
   love.graphics.print(string.format("x: %d y: %d", hero.position.x, hero.position.y), 0, 24)
+  x, y = love.graphics.getDimensions()
+  love.graphics.print(string.format("dim_x: %d dim_y: %d", x, y), 0, 36)
+
+  --love.graphics.setCanvas()
+  --love.graphics.setShader(crtShader)
+  love.graphics.setColor(1, 1, 1, 1)
+  --love.graphics.draw(scene, 0, 0, 0, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
+  --love.graphics.setShader()
+
   _G.VPF = 0
 end
