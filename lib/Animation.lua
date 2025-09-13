@@ -3,28 +3,26 @@
 ---@field imageData love.ImageData
 ---@field width number
 ---@field height number
----@field duration number
+---@field animate fun(animation: Animation, animationName: string, dt: number)
 ---@field spriteSheet love.Image
 ---@field quads love.Quad[]
 ---@field currentTime number
----@field animIdx number
----@field animId number
+---@field currentAnimation string
+---@field animationDict { [string]: { id: number, duration: number } }
 ---@field currentQuad love.Quad
 local Animation = { __kind = "Character" }
 Animation.__index = Animation
 
 ---@return Animation
-function Animation.new(imageData, width, height, duration)
+function Animation.new(imageData, width, height, animationDict, defaultAnimation)
   local self = setmetatable({}, Animation)
   self.imageData = imageData
   self.width = width
   self.height = height
-  self.duration = duration
+  self.animationDict = animationDict
   self.spriteSheet = love.graphics.newImage(imageData)
   self.quads = {};
   self.currentTime = 0
-  self.animIdx = 1
-  self.animId = 1
 
   for y = 0, self.imageData:getHeight() - height, height do
     local row = {}
@@ -44,9 +42,31 @@ function Animation.new(imageData, width, height, duration)
     end
     table.insert(self.quads, row)
   end
-  self.currentQuad = self.quads[1][1]
+
+  self.currentAnimation = defaultAnimation
+  self.currentQuad = self.quads[animationDict[defaultAnimation].id][1]
 
   return self
+end
+
+function Animation:animate(animationName, dt)
+  local currentAnimationTable = self.animationDict[animationName]
+  if self.currentAnimation == animationName then
+    self.currentTime = self.currentTime + dt
+    if self.currentTime > currentAnimationTable.duration then
+      self.currentTime = 0
+      self.quadIndex = self.quadIndex + 1
+      if self.quadIndex > #self.quads[currentAnimationTable.id] then
+        self.quadIndex = 1
+      end
+      self.currentQuad = self.quads[currentAnimationTable.id][self.quadIndex]
+    end
+  else
+    self.currentAnimation = animationName
+    self.currentTime = 0
+    self.quadIndex = 1
+    self.currentQuad = self.quads[currentAnimationTable.id][1]
+  end
 end
 
 return Animation

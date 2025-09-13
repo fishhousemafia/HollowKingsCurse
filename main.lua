@@ -10,12 +10,11 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
   end
 end
 
-local EventBus = require "lib.EventBus"
-local ProjectileManager = require "lib.ProjectileManager"
+require "lib.EventBus"
+require "lib.ProjectileManager"
 local ServiceLocator = require "lib.ServiceLocator"
-
-local eventBus = ServiceLocator:register("EventBus", EventBus.new()) ---@type EventBus
-local projectileManager = ServiceLocator:register("ProjectileManager", ProjectileManager.new()) ---@type ProjectileManager
+local eventBus = ServiceLocator:get("EventBus")
+local projectileManager = ServiceLocator:get("ProjectileManager")
 
 local Character = require "lib.Character"
 local Weapon = require "lib.Weapon"
@@ -111,8 +110,61 @@ function love.load()
     end
   )
 
-  local hero_animation = Animation.new(sprites["hero"], 8, 8, 0.333)
-  hero = Character.new(gameDimensions / 2, hero_animation, Weapon.new(Projectile.new()), world)
+  local hero_animationDict = {
+    stand_down =  { id = 1, duration = 0 },
+    walk_down =   { id = 2, duration = 0.333 },
+    stand_right = { id = 3, duration = 0 },
+    walk_right =  { id = 4, duration = 0.333 },
+    stand_left =  { id = 5, duration = 0 },
+    walk_left =   { id = 6, duration = 0.333 },
+    stand_up =    { id = 7, duration = 0 },
+    walk_up =     { id = 8, duration = 0.333 },
+  }
+  local hero_animation = Animation.new(sprites["hero"], 8, 8, hero_animationDict, "stand_down")
+
+  local hero_bullet = Projectile.new(nil, nil, function(self, target)
+    -- onCollide
+  end)
+  local hero_weapon = Weapon.new(hero_bullet, 0.1, nil)
+
+  local hero_onUpdate = function(character, dt)
+    local speed = 4000
+    local move = Vector2.zero()
+    if love.keyboard.isDown("w") then
+      character.animation:animate("walk_up", dt)
+      move = move + Vector2.new(0, -1)
+    end
+    if love.keyboard.isDown("s") then
+      character.animation:animate("walk_down", dt)
+      move = move + Vector2.new(0, 1)
+    end
+    if love.keyboard.isDown("a") then
+      character.animation:animate("walk_left", dt)
+      move = move + Vector2.new(-1, 0)
+    end
+    if love.keyboard.isDown("d") then
+      character.animation:animate("walk_right", dt)
+      move = move + Vector2.new(1, 0)
+    end
+    if string.find(character.animation.currentAnimation, "walk") and not (love.keyboard.isDown("w") or love.keyboard.isDown("s") or love.keyboard.isDown("a") or love.keyboard.isDown("d")) then
+      local standAnimation = character.animation.currentAnimation:gsub("^walk", "stand")
+      character.animation:animate(standAnimation, dt)
+    end
+
+    local velocity = move:unit() * (speed * dt)
+    character.body:setLinearVelocity(velocity:tuple())
+
+    character.weapon:update(dt)
+    if love.mouse.isDown(1) then
+      eventBus:emit("attackRequest", {
+        source = Vector2.fromBody(character.body),
+        destination = Vector2.new(love.mouse.getPosition()) / _G.SCALE_FACTOR,
+        weapon = character.weapon,
+      })
+    end
+  end
+  hero = Character.new(hero_animation, hero_weapon, hero_onUpdate)
+  hero:enable(world, gameDimensions)
 
   eventBus:subscribe("attackRequest", function(attackVectors)
     attackVectors.destination = camera:toWorldSpace(attackVectors.destination)
@@ -121,6 +173,11 @@ function love.load()
 
   eventBus:subscribe("projectileFired", function(projectile)
     projectileManager:add(projectile)
+  end)
+  
+  eventBus:subscribe("error", function(eventName, trace)
+    print(eventName)
+    print(trace)
   end)
 end
 
@@ -131,9 +188,9 @@ function love.keypressed(key)
 end
 
 function love.update(dt)
-  eventBus:emit("update", dt)
-  projectileManager:evaluate(dt)
   world:update(dt)
+  projectileManager:update(world, dt)
+  eventBus:emit("update", dt)
 end
 
 local function drawGame()
@@ -151,7 +208,7 @@ local function drawGame()
   local _, _, w, h = hero.animation.currentQuad:getViewport()
   love.graphics.draw(hero.animation.spriteSheet, hero.animation.currentQuad, x-(w/2), y-(h/2), 0)
 
-  for projectile in projectileManager:iterate() do
+  for _, projectile in pairs(projectileManager:getAll()) do
     x, y = camera:toObjectSpace(projectile.position):floor():tuple()
     w, h = 1, 1
     love.graphics.rectangle("fill", x, y, w, h)
@@ -159,10 +216,12 @@ local function drawGame()
 end
 
 function love.draw()
-  love.graphics.setCanvas(scene)
-  love.graphics.clear(0, 0, 0, 1)
-  drawGame()
-  love.graphics.setColor(1, 1, 1, 1)
-  love.graphics.setCanvas()
-  love.graphics.draw(scene, 0, 0, 0, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
+  if hero.isEnabled then
+    love.graphics.setCanvas(scene)
+    love.graphics.clear(0, 0, 0, 1)
+    drawGame()
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setCanvas()
+    love.graphics.draw(scene, 0, 0, 0, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
+  end
 end

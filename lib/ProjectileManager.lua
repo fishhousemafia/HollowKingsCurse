@@ -1,40 +1,69 @@
+local ServiceLocator = require "lib.ServiceLocator"
+
 ---@class ProjectileManager
----@field pool Projectile[]
-local ProjectileManager = { __kind = "ProjectileManager" }
+---@field private _active Projectile[]
+---@field private _pool Projectile[]
+local ProjectileManager = {}
 ProjectileManager.__index = ProjectileManager
 
 function ProjectileManager.new()
   local self = setmetatable({}, ProjectileManager)
-  self.pool = {}
+  self._active = {}
+  self._pool = {}
+
   return self
 end
 
-function ProjectileManager:add(projectile)
-  table.insert(self.pool, projectile)
+function ProjectileManager:spawn(proj)
+  local p = (#self._pool > 0) and table.remove(self._pool) or proj:clone()
+  p.activate  = proj.activate
+  p.evaluate  = proj.evaluate
+  p.onCollide = proj.onCollide
+  p:activate(proj.source, proj.destination)
+  self._active[#self._active+1] = p
+  return p
 end
 
-function ProjectileManager:evaluate(dt)
-  for idx, projectile in pairs(self.pool) do
-    projectile:evaluate(dt)
-    if not projectile.active then
-      table.remove(self.pool, idx)
+function ProjectileManager:update(collisionWorld, dt)
+  local list = self._active
+  local j = 1
+  for i = 1, #list do
+    local p = list[i]
+    if p and p.active then
+      p:evaluate(dt)
+      if collisionWorld then
+        local hit = nil
+        --local hit = CHECK FOR COLLISION
+        if hit then
+          if p.onCollide then p:onCollide(hit) end
+          p.active = false
+        end
+      end
+      if p.active then
+        list[j] = p; j = j + 1
+      else
+        p:reset(); self._pool[#self._pool+1] = p
+      end
+    elseif p and not p.active then
+      p:reset(); self._pool[#self._pool+1] = p
     end
   end
+  for k = j, #list do list[k] = nil end
 end
 
-function ProjectileManager:iterate()
-  if #self.pool == 0 then
-    return function () end
+---@return Projectile[]
+function ProjectileManager:getAll()
+  local result = {}
+  for i = 1, #self._active do
+    result[i] = self._active[i]
   end
-
-  local idx = #self.pool
-  return function ()
-    if idx >= 0 and self.pool[idx] then
-      local projectile = self.pool[idx]
-      idx = idx - 1
-      return projectile
-    end
-  end
+  return result
 end
 
+function ProjectileManager:count()
+  return #self._active
+end
+
+ServiceLocator:register("ProjectileManager", ProjectileManager.new())
 return ProjectileManager
+
