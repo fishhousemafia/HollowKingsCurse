@@ -110,6 +110,16 @@ function Vector2:angle(other, isSigned)
   return math.abs(rad)
 end
 
+---@param angle number
+---@return Vector2 # Rotate this vector by `angle` radians around the origin.
+function Vector2:rotate(angle)
+  local c, s = math.cos(angle), math.sin(angle)
+  return Vector2.new(
+    self.x * c - self.y * s,
+    self.x * s + self.y * c
+  )
+end
+
 ---@param other Vector2
 ---@return number # Returns a scalar dot product of the two vectors.
 function Vector2:dot(other)

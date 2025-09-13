@@ -122,10 +122,41 @@ function love.load()
   }
   local hero_animation = Animation.new(sprites["hero"], 8, 8, hero_animationDict, "stand_down")
 
-  local hero_bullet = Projectile.new(nil, nil, function(self, target)
-    -- onCollide
-  end)
-  local hero_weapon = Weapon.new(hero_bullet, 0.1, nil)
+  local function hero_bullet_activate(self, source, destination)
+    local angle      = source:angle(destination, true)
+    self.active      = true
+    self.lifetime    = 2
+    self.source      = source
+    self.position    = source
+    self.destination = destination
+    self.delta       = Vector2.new(math.cos(angle), math.sin(angle))
+    self.speed = -100
+  end
+  local function hero_bullet_evaluate(self, dt)
+    self.lifetime     = self.lifetime - dt
+    if self.lifetime <= 0 then self.active = false; return end
+    self.position     = self.position + (self.delta * self.speed * dt)
+    self.speed = self.speed + 5
+  end
+  local function hero_bullet_collide()
+  end
+  local hero_bullet = Projectile.new(hero_bullet_activate, hero_bullet_evaluate, hero_bullet_collide)
+  local function hero_pattern(self, source, destination)
+    local out = {}
+    local baseAngle = source:angle(destination, true)
+    local baseAngleVector = Vector2.new(math.cos(baseAngle), math.sin(baseAngle))
+    local coneAngle = math.pi/20
+    for i = -2, 2 do
+      local bp = self.blueprint:clone()
+      local angle = baseAngleVector:rotate(coneAngle * i)
+      local far = source + (angle * 1000)
+      bp.source = source
+      bp.destination = far
+      table.insert(out, bp)
+    end
+    return out
+  end
+  local hero_weapon = Weapon.new(hero_bullet, 0.1, hero_pattern)
 
   local hero_onUpdate = function(character, dt)
     local speed = 4000

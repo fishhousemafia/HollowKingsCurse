@@ -11,6 +11,12 @@ local ProjectileManager = ServiceLocator:get("ProjectileManager")
 local Weapon = { __kind = "Weapon" }
 Weapon.__index = Weapon
 
+local function dPattern(self, source, destination)
+  self.blueprint.source = source
+  self.blueprint.destination = destination
+  return { self.blueprint }
+end
+
 ---@param blueprint Projectile
 ---@param cooldown number|nil
 ---@param pattern fun(self: Weapon, source:any, destination:any):(Projectile[])|nil
@@ -19,11 +25,7 @@ function Weapon.new(blueprint, cooldown, pattern)
   self.blueprint = blueprint
   self.cooldown  = cooldown or 0
   self._timer    = 0
-  self.pattern   = pattern or function(this, source, destination)
-    this.blueprint.source = source
-    this.blueprint.destination = destination
-    return { this.blueprint }
-  end
+  self.pattern   = pattern or dPattern
 
   return self
 end
