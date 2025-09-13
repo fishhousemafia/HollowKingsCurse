@@ -11,10 +11,10 @@
     "fileStates": {
         "default.tmx": {
             "scale": 5.027083333333334,
-            "selectedLayer": 0,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 120.1491918773311,
-                "y": 80.16576875259011
+                "x": 467.1694985495233,
+                "y": 311.91048487360126
             }
         },
         "map_tiles.tsx": {
@@ -33,6 +33,7 @@
         "default.tmx"
     ],
     "project": "default.tiled-project",
+    "property.type": "bool",
     "recentFiles": [
         "map_tiles.tsx",
         "default.tmx"

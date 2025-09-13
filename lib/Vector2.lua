@@ -11,7 +11,6 @@ Vector2.__index = Vector2
 ---@return Vector2 # The Vector2 data type represents a 2D value with direction and magnitude.
 function Vector2.new(x, y)
   local self = setmetatable({}, Vector2)
-  _G.VPF = _G.VPF + 1
   self.x = x or 0
   self.y = y or 0
   return self
@@ -36,6 +35,12 @@ end
 function Vector2.yAxis()
   return Vector2.new(0, 1)
 end
+
+---@param body love.Body
+function Vector2.fromBody(body)
+  return Vector2.new(body:getWorldCenter())
+end
+
 
 ---@return number, number # Returns the X and Y components of a Vector2.
 function Vector2:tuple()

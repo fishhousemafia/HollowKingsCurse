@@ -14,24 +14,24 @@ local EventBus = require "lib.EventBus"
 local ProjectileManager = require "lib.ProjectileManager"
 local ServiceLocator = require "lib.ServiceLocator"
 
-local eventBus = ServiceLocator:register("EventBus", EventBus.new())
-local projectileManager = ServiceLocator:register("ProjectileManager", ProjectileManager.new())
+local eventBus = ServiceLocator:register("EventBus", EventBus.new()) ---@type EventBus
+local projectileManager = ServiceLocator:register("ProjectileManager", ProjectileManager.new()) ---@type ProjectileManager
 
 local Character = require "lib.Character"
+local Weapon = require "lib.Weapon"
 local Vector2 = require "lib.Vector2"
 local Animation = require "lib.Animation"
+local Projectile = require "lib.Projectile"
 
 local sti = require "lib.sti"
 
-_G.SCALE_FACTOR = 1
-_G.VPF = 0
-
 local gameDimensions = Vector2.new(320, 240)
-local hero = Character.new(gameDimensions / 2)
 local camera = Vector2.zero()
-local sprites = {}
-local scene = {}
-local crtShader = {}
+local map = {}
+local hero = nil ---@type Character
+local sprites = nil ---@type love.ImageData[]
+local scene = nil ---@type love.Canvas
+local world = nil ---@type love.World
 
 function love.load()
   local desktopDimensions = Vector2.new(love.window.getDesktopDimensions(1))
@@ -39,33 +39,80 @@ function love.load()
   _G.SCALE_FACTOR = math.min(scaled:tuple()) - 1
   love.window.setMode(gameDimensions.x * _G.SCALE_FACTOR, gameDimensions.y * _G.SCALE_FACTOR, { resizable = false, minwidth = 640, minheight = 480 })
   love.graphics.setDefaultFilter("nearest", "nearest")
+  scene = love.graphics.newCanvas(gameDimensions.x, gameDimensions.y, { dpiscale = 1 })
 
-  --scene = love.graphics.newCanvas(gameDimensions.x, gameDimensions.y, { dpiscale = 1 })
-  --scene:setFilter("nearest", "nearest")
+  local function loadAssets(dir)
+    local assets = {}
 
-  --local shaderParams = {
-  --  texSize = { gameDimensions.x, gameDimensions.y },
-  --  outSize = { gameDimensions.x * _G.SCALE_FACTOR, gameDimensions.y * _G.SCALE_FACTOR },
-  --  CURVATURE_X = 0.10,
-  --  CURVATURE_Y = 0.15,
-  --  MASK_BRIGHTNESS = 0.70,
-  --  SCANLINE_WEIGHT = 0.60,
-  --  SCANLINE_GAP_BRIGHTNESS = 0.12,
-  --  BLOOM_FACTOR = 1.5,
-  --  INPUT_GAMMA = 2.4,
-  --  OUTPUT_GAMMA = 2.2,
-  --  MASK_TYPE = 2.0,
-  --  ENABLE_SCANLINES = 1.0,
-  --  ENABLE_GAMMA = 1.0,
-  --  ENABLE_FAKE_GAMMA = 1.0,
-  --  ENABLE_CURVATURE = 0.0,
-  --  ENABLE_SHARPER = 0.0,
-  --  ENABLE_MULTISAMPLE = 1.0,
-  --}
-  --crtShader = love.graphics.newShader("crt.glsl")
-  --for k, v in pairs(shaderParams) do
-  --  crtShader:send(k, v)
-  --end
+    local function walk(path, prefix)
+      for _, item in ipairs(love.filesystem.getDirectoryItems(path)) do
+        local subpath = path .. "/" .. item
+        local info = love.filesystem.getInfo(subpath)
+        if info and info.type == "directory" then
+          walk(subpath, prefix and (prefix .. "/" .. item) or item)
+        elseif info and info.type == "file" then
+          if item:lower():match("%.png$") then
+            local base = item:match("([^/]+)%.png$")
+            local key = base
+
+            if assets[key] then
+              local rel = (prefix and (prefix .. "/" .. base) or base):gsub("/", "_")
+              key = rel
+            end
+
+            assets[key] = love.image.newImageData(subpath)
+          end
+        end
+      end
+    end
+
+    walk(dir, nil)
+    return assets
+  end
+  sprites = loadAssets("assets/sprites")
+
+  love.physics.setMeter(8)
+  map = sti("assets/maps/default/default.lua", { "box2d" })
+  world = love.physics.newWorld(0, 0)
+  map:box2d_init(world)
+
+  world:setCallbacks(
+    function(fixture1, fixture2, contact)
+      eventBus:emit("beginContact", {
+        fixture1 = fixture1,
+        fixture2 = fixture2,
+        contact = contact,
+      })
+    end,
+    function(fixture1, fixture2, contact)
+      eventBus:emit("endContact", {
+        fixture1 = fixture1,
+        fixture2 = fixture2,
+        contact = contact,
+      })
+    end,
+    function(fixture1, fixture2, contact)
+      eventBus:emit("preSolve", {
+        fixture1 = fixture1,
+        fixture2 = fixture2,
+        contact = contact,
+      })
+    end,
+    function(fixture1, fixture2, contact, normal_impulse1, tangent_impulse1, normal_impulse2, tangent_impulse2)
+      eventBus:emit("postSolve", {
+        fixture1 = fixture1,
+        fixture2 = fixture2,
+        contact = contact,
+        normal_impulse1 = normal_impulse1,
+        tangent_impulse1 = tangent_impulse1,
+        normal_impulse2 = normal_impulse2,
+        tangent_impulse2 = tangent_impulse2,
+      })
+    end
+  )
+
+  local hero_animation = Animation.new(sprites["hero"], 8, 8, 0.333)
+  hero = Character.new(gameDimensions / 2, hero_animation, Weapon.new(Projectile.new()), world)
 
   eventBus:subscribe("attackRequest", function(attackVectors)
     attackVectors.destination = camera:toWorldSpace(attackVectors.destination)
@@ -75,36 +122,6 @@ function love.load()
   eventBus:subscribe("projectileFired", function(projectile)
     projectileManager:add(projectile)
   end)
-
-  local function loadAssets(directory)
-    local assetFiles = {}
-    local i = 1
-    local pfile = nil
-    while pfile == nil do
-      pfile = io.popen('find "' .. directory .. '" -name *.png')
-    end
-    for filename in pfile:lines() do
-      assetFiles[i] = filename
-      i = i + 1
-    end
-    pfile:close()
-
-    local assets = {}
-    for _, filename in ipairs(assetFiles) do
-      local start = string.find(filename, "/[^/]*$")
-      local stop = string.find(filename, ".png$")
-      assets[string.sub(filename, start + 1, stop - 1)] = love.image.newImageData(filename)
-    end
-    return assets
-  end
-  sprites = loadAssets("assets/sprites")
-
-  hero.animation = Animation.new(sprites["hero"], 8, 8, 0.333)
-
-  love.physics.setMeter(8 * _G.SCALE_FACTOR)
-  Map = sti("assets/maps/default/default.lua", { "box2d" })
-  World = love.physics.newWorld(0, 0)
-  Map:box2d_init(World)
 end
 
 function love.keypressed(key)
@@ -116,23 +133,21 @@ end
 function love.update(dt)
   eventBus:emit("update", dt)
   projectileManager:evaluate(dt)
-  Map:update(dt)
+  world:update(dt)
 end
 
-function love.draw()
-  camera = (hero.position - gameDimensions / 2):floor()
-
-  --love.graphics.setCanvas(scene)
-  love.graphics.clear(0.05, 0.05, 0.06, 1)
+local function drawGame()
+  local heroPosition = Vector2.fromBody(hero.body)
+  camera = (heroPosition - (gameDimensions / 2)):floor()
 
   love.graphics.setColor(1, 1, 1, 1)
-  Map:draw(-camera.x, -camera.y)
+  map:draw(-camera.x, -camera.y)
 
   love.graphics.setColor(1, 0, 0, 1)
-  Map:box2d_draw(-camera.x, -camera.y)
+  map:box2d_draw(-camera.x, -camera.y)
 
   love.graphics.setColor(1, 1, 1, 1)
-  local x, y = camera:toObjectSpace(hero.position):floor():tuple()
+  local x, y = camera:toObjectSpace(heroPosition):floor():tuple()
   local _, _, w, h = hero.animation.currentQuad:getViewport()
   love.graphics.draw(hero.animation.spriteSheet, hero.animation.currentQuad, x-(w/2), y-(h/2), 0)
 
@@ -141,19 +156,13 @@ function love.draw()
     w, h = 1, 1
     love.graphics.rectangle("fill", x, y, w, h)
   end
+end
 
-  love.graphics.setColor(1, 0, 0, 1)
-  love.graphics.print(string.format("FPS: %d", love.timer.getFPS()))
-  love.graphics.print(string.format("VPF: %d", _G.VPF), 0, 12)
-  love.graphics.print(string.format("x: %d y: %d", hero.position.x, hero.position.y), 0, 24)
-  x, y = love.graphics.getDimensions()
-  love.graphics.print(string.format("dim_x: %d dim_y: %d", x, y), 0, 36)
-
-  --love.graphics.setCanvas()
-  --love.graphics.setShader(crtShader)
+function love.draw()
+  love.graphics.setCanvas(scene)
+  love.graphics.clear(0, 0, 0, 1)
+  drawGame()
   love.graphics.setColor(1, 1, 1, 1)
-  --love.graphics.draw(scene, 0, 0, 0, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
-  --love.graphics.setShader()
-
-  _G.VPF = 0
+  love.graphics.setCanvas()
+  love.graphics.draw(scene, 0, 0, 0, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
 end

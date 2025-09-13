@@ -2,7 +2,6 @@ local Vector2 = require "lib.Vector2"
 
 ---@class Projectile
 ---@field private __kind string
----@field parent Weapon
 ---@field activate function
 ---@field evaluate function
 ---@field active boolean
@@ -36,9 +35,8 @@ local function dEvaluate(self, dt)
 end
 
 ---@return Projectile
-function Projectile.new(parent, activate, evaluate)
+function Projectile.new(activate, evaluate)
   local self = setmetatable({}, Projectile)
-  self.parent = parent
   self.activate = activate or dActivate
   self.evaluate = evaluate or dEvaluate
   self.active = false
@@ -51,7 +49,7 @@ end
 
 ---@return Projectile
 function Projectile:clone()
-  return Projectile.new(self.parent, self.activate, self.evaluate)
+  return Projectile.new(self.activate, self.evaluate)
 end
 
 return Projectile

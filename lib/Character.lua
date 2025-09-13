@@ -6,20 +6,26 @@ local eventBus = ServiceLocator:try_get("EventBus")
 
 ---@class Character
 ---@field private __kind string
----@field position Vector2
+---@field animation Animation
 ---@field weapon Weapon
----@field animation table
+---@field world love.World
+---@field body love.Body
+---@field shape love.Shape
+---@field fixture love.Fixture
 ---@field animState string
 ---@field animMap table
 local Character = { __kind = "Character" }
 Character.__index = Character
 
 ---@return Character
-function Character.new(position, weapon)
+function Character.new(position, animation, weapon, world)
   local self = setmetatable({}, Character)
-  self.position = position or Vector2.zero()
-  self.weapon = weapon or Weapon.new(self)
-  self.animation = {}
+  self.animation = animation
+  self.weapon = weapon
+  self.world = world
+  self.body = love.physics.newBody(world, position.x, position.y, "dynamic")
+  self.shape = love.physics.newRectangleShape(8, 8)
+  self.fixture = love.physics.newFixture(self.body, self.shape, 1)
   self.animState = "stand_down"
   self.animMap = {
     stand_down = 1,
@@ -33,12 +39,13 @@ function Character.new(position, weapon)
   }
 
   eventBus:subscribe("update", function(dt) self:onUpdate(dt) end)
+  eventBus:subscribe("beginContact", function(event) self:onBeginContact(event.fixture1, event.fixture2, event.contact) end)
 
   return self
 end
 
 function Character:onUpdate(dt)
-  local speed = 60
+  local speed = 4000
   local move = Vector2.zero()
   if love.keyboard.isDown("w") then
     self.animState = "walk_up"
@@ -65,12 +72,13 @@ function Character:onUpdate(dt)
   end
   if love.mouse.isDown(1) then
     eventBus:emit("attackRequest", {
-      source = self.position,
+      source = Vector2.fromBody(self.body),
       destination = Vector2.new(love.mouse.getPosition()) / _G.SCALE_FACTOR,
       weapon = self.weapon,
     })
   end
-  self.position = self.position + move:unit() * (speed * dt)
+  local velocity = move:unit() * (speed * dt)
+  self.body:setLinearVelocity(velocity:tuple())
 
   -- TODO refactor this
   if string.find(self.animState, "walk") then
@@ -88,6 +96,12 @@ function Character:onUpdate(dt)
     end
     self.animation.currentQuad = self.animation.quads[self.animation.animId][self.animation.animIdx]
   end
+end
+
+function Character:onBeginContact(fixture1, fixture2, contact)
+  print(fixture1)
+  print(fixture2)
+  print(contact)
 end
 
 return Character

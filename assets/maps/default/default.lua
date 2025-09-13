@@ -149,7 +149,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 10,
@@ -162,7 +165,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 11,
@@ -175,7 +181,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 12,
@@ -188,7 +197,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 14,
@@ -201,7 +213,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 15,
@@ -214,7 +229,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 16,
@@ -227,7 +245,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 17,
@@ -240,7 +261,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 18,
@@ -253,7 +277,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 19,
@@ -266,7 +293,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 20,
@@ -279,7 +309,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 21,
@@ -292,7 +325,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 22,
@@ -305,7 +341,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 23,
@@ -318,7 +357,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 24,
@@ -331,7 +373,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 25,
@@ -344,7 +389,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 26,
@@ -357,7 +405,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 27,
@@ -370,7 +421,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 28,
@@ -383,7 +437,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 29,
@@ -396,7 +453,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 30,
@@ -409,7 +469,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         },
         {
           id = 31,
@@ -422,7 +485,10 @@ return {
           height = 16,
           rotation = 0,
           visible = true,
-          properties = {}
+          properties = {
+            ["collidable"] = true,
+            ["static"] = true
+          }
         }
       }
     }
