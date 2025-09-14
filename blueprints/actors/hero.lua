@@ -1,7 +1,7 @@
 local ServiceLocator = require "core.ServiceLocator"
 local Animation = require "graphics.Animation"
 local Vector2 = require "math.Vector2"
-local Character = require "objects.Character"
+local Character = require "objects.Actor"
 local eventBus = ServiceLocator:get("EventBus")
 
 local onUpdate = function(character, dt)

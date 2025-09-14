@@ -5,7 +5,7 @@ local function pattern(self, source, destination)
   local out = {}
   local baseAngle = source:angle(destination, true)
   local baseAngleVector = Vector2.new(math.cos(baseAngle), math.sin(baseAngle))
-  local coneAngle = math.pi/20
+  local coneAngle = math.pi/60
   for i = -2, 2 do
     local bp = self.blueprint:clone()
     local angle = baseAngleVector:rotate(coneAngle * i)
@@ -18,5 +18,5 @@ local function pattern(self, source, destination)
 end
 
 local bullet = require "blueprints.projectiles.default"
-return Weapon.new(bullet, 0.1, pattern)
+return Weapon.new(bullet, 0.5, pattern)
 

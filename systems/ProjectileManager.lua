@@ -1,4 +1,5 @@
 local ServiceLocator = require "core.ServiceLocator"
+local kind = (require "core.Utils").kind
 
 ---@class ProjectileManager
 ---@field private _active Projectile[]
@@ -14,38 +15,37 @@ function ProjectileManager.new()
   return self
 end
 
-function ProjectileManager:spawn(proj)
+function ProjectileManager:spawn(proj, collisionWorld, friendly)
   local p = (#self._pool > 0) and table.remove(self._pool) or proj:clone()
   p.activate  = proj.activate
   p.evaluate  = proj.evaluate
   p.onCollide = proj.onCollide
-  p:activate(proj.source, proj.destination)
+  p:activate(proj.source, proj.destination, collisionWorld, friendly)
   self._active[#self._active+1] = p
   return p
 end
 
-function ProjectileManager:update(collisionWorld, dt)
+function ProjectileManager:update(dt)
   local list = self._active
   local j = 1
   for i = 1, #list do
     local p = list[i]
     if p and p.active then
       p:evaluate(dt)
-      if collisionWorld then
-        local hit = nil
-        --local hit = CHECK FOR COLLISION
-        if hit then
-          if p.onCollide then p:onCollide(hit) end
-          p.active = false
-        end
+      local hit = p.body:getContacts()
+      if #hit > 0 then
+        if p.onCollide then p:onCollide(hit) end
+        --p.active = false
       end
       if p.active then
         list[j] = p; j = j + 1
       else
-        p:reset(); self._pool[#self._pool+1] = p
+        p:reset()
+        self._pool[#self._pool+1] = p
       end
     elseif p and not p.active then
-      p:reset(); self._pool[#self._pool+1] = p
+      p:reset()
+      self._pool[#self._pool+1] = p
     end
   end
   for k = j, #list do list[k] = nil end

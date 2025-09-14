@@ -1,6 +1,6 @@
 local Animation = require "graphics.Animation"
 local Vector2 = require "math.Vector2"
-local Character = require "objects.Character"
+local Character = require "objects.Actor"
 
 local state = {
   time = 0,

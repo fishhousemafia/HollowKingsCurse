@@ -8,6 +8,8 @@ local ProjectileManager = ServiceLocator:get("ProjectileManager")
 ---@field cooldown number
 ---@field _timer number
 ---@field pattern fun(self: Weapon, source: any, destination: any): (Projectile[])
+---@field world love.World
+---@field friendly boolean
 local Weapon = { __kind = "Weapon" }
 Weapon.__index = Weapon
 
@@ -26,6 +28,7 @@ function Weapon.new(blueprint, cooldown, pattern)
   self.cooldown  = cooldown or 0
   self._timer    = 0
   self.pattern   = pattern or dPattern
+  self.friendly  = false
 
   return self
 end
@@ -37,7 +40,10 @@ function Weapon:update(dt)
 end
 
 function Weapon:ready()
-  return self._timer == 0
+  if self._timer == 0 and self.world ~= nil then
+    return true
+  end
+  return false
 end
 
 function Weapon:attack(source, destination)
@@ -52,7 +58,7 @@ function Weapon:attack(source, destination)
 
   for i = 1, #blueprints do
     local bp = blueprints[i]
-    local live = ProjectileManager:spawn(bp)
+    local live = ProjectileManager:spawn(bp, self.world, self.friendly)
     eventBus:emit("projectile:spawn", live, self)
   end
   eventBus:emit("weapon:attack", self, #blueprints)

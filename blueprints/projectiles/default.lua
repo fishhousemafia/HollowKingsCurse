@@ -1,25 +1,53 @@
+local kind = (require "core.Utils").kind
 local Vector2 = require "math.Vector2"
 local Projectile = require "objects.Projectile"
 
-local function activate(self, source, destination)
+local function activate(self, source, destination, collisionWorld, friendly)
   local angle      = source:angle(destination, true)
+  self.angleVector = Vector2.new(math.cos(angle), math.sin(angle))
+  self.speed       = 200
+  self.velocity    = self.angleVector * self.speed
   self.active      = true
-  self.lifetime    = 2
+  self.lifetime    = 1
   self.source      = source
-  self.position    = source
   self.destination = destination
-  self.delta       = Vector2.new(math.cos(angle), math.sin(angle))
-  self.speed = -100
+  self.body        = love.physics.newBody(collisionWorld, source.x, source.y, "dynamic")
+  local shape      = love.physics.newRectangleShape(1, 1)
+  self.fixture     = love.physics.newFixture(self.body, shape, 1)
+  self.fixture:setUserData(self)
+  self.fixture:setCategory(_G.COLLISION_CATEGORIES.FRIEND_P)
+  self.fixture:setMask(_G.COLLISION_CATEGORIES.FRIEND, _G.COLLISION_CATEGORIES.FRIEND_P)
+  self.body:setLinearVelocity(self.velocity:tuple())
 end
 
 local function evaluate(self, dt)
-  self.lifetime     = self.lifetime - dt
-  if self.lifetime <= 0 then self.active = false; return end
-  self.position     = self.position + (self.delta * self.speed * dt)
-  self.speed = self.speed + 5
+  self.lifetime = self.lifetime - dt
+  if self.lifetime <= 0 then
+    self.active = false
+    return
+  end
+
+  self.speed = self.speed - 2
+  self.velocity = self.angleVector * self.speed
+  self.body:setLinearVelocity(self.velocity:tuple())
 end
 
-local function collide()
+local function collide(self, contacts)
+  local hurt
+  for _, contact in pairs(contacts) do
+    local a, b = contact:getFixtures()
+    a, b = a:getUserData(), b:getUserData()
+    if kind(a) == "Actor" then
+      hurt = a
+    end
+    if kind(b) == "Actor" then
+      hurt = b
+    end
+  end
+  if hurt ~= nil then
+    hurt.health = hurt.health - 10
+  end
+  self:reset()
 end
 
 return Projectile.new(activate, evaluate, collide)

@@ -11,11 +11,13 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
 end
 
 require "core.EventBus"
+require "systems.ActorManager"
 require "systems.ProjectileManager"
 local ServiceLocator = require "core.ServiceLocator"
 local sti = require "core.sti"
 local Vector2 = require "math.Vector2"
 local eventBus = ServiceLocator:get("EventBus")
+local actorManager = ServiceLocator:get("ActorManager")
 local projectileManager = ServiceLocator:get("ProjectileManager")
 
 _G.SPRITES = nil ---@type love.ImageData[]
@@ -23,8 +25,8 @@ _G.SPRITES = nil ---@type love.ImageData[]
 local gameDimensions = Vector2.new(320, 240)
 local camera = Vector2.zero()
 local map = {}
-local hero = nil ---@type Character
-local enemy = nil ---@type Character
+local hero = nil ---@type Actor
+local enemy = nil ---@type Actor
 local scene = nil ---@type love.Canvas
 local world = nil ---@type love.World
 
@@ -57,6 +59,25 @@ local function loadAssets(dir)
   return assets
 end
 _G.SPRITES = loadAssets("sprites")
+
+_G.COLLISION_CATEGORIES = {
+    BOUNDARY = 1,
+    OBSTACLE = 2,
+    FRIEND   = 3,
+    ENEMY    = 4,
+    FRIEND_P = 5,
+    ENEMY_P  = 6,
+    CAT_6    = 7,
+    CAT_7    = 8,
+    CAT_8    = 9,
+    CAT_9    = 10,
+    CAT_10   = 11,
+    CAT_11   = 12,
+    CAT_12   = 13,
+    CAT_13   = 14,
+    CAT_14   = 15,
+    CAT_15   = 16,
+}
 
 function love.load()
   local desktopDimensions = Vector2.new(love.window.getDesktopDimensions(1))
@@ -106,9 +127,9 @@ function love.load()
     end
   )
 
-  hero = require "blueprints.characters.hero"
-  hero:enable(world, gameDimensions)
-  enemy = require "blueprints.characters.enemy"
+  hero = require "blueprints.actors.hero"
+  hero:enable(world, gameDimensions, true)
+  enemy = require "blueprints.actors.enemy"
   enemy:enable(world, gameDimensions / 2)
 
   eventBus:subscribe("attackRequest", function(attackVectors)
@@ -134,13 +155,13 @@ end
 
 function love.update(dt)
   world:update(dt)
-  projectileManager:update(world, dt)
+  actorManager:update(dt)
+  projectileManager:update(dt)
   eventBus:emit("update", dt)
 end
 
 local function drawGame()
   local heroPosition = Vector2.fromBody(hero.body)
-  local enemyPosition = Vector2.fromBody(enemy.body)
   camera = (heroPosition - (gameDimensions / 2)):floor()
 
   love.graphics.setColor(1, 1, 1, 1)
@@ -150,16 +171,16 @@ local function drawGame()
   map:box2d_draw(-camera.x, -camera.y)
 
   love.graphics.setColor(1, 1, 1, 1)
-  local x, y = camera:toObjectSpace(heroPosition):floor():tuple()
-  local _, _, w, h = hero.animation.currentQuad:getViewport()
-  love.graphics.draw(hero.animation.spriteSheet, hero.animation.currentQuad, x-(w/2), y-(h/2), 0)
-  x, y = camera:toObjectSpace(enemyPosition):floor():tuple()
-  _, _, w, h = enemy.animation.currentQuad:getViewport()
-  love.graphics.draw(enemy.animation.spriteSheet, enemy.animation.currentQuad, x-(w/2), y-(h/2), 0)
+  for _, actor in pairs(actorManager:getEnabled()) do
+    local position = Vector2.fromBody(actor.body)
+    local x, y = camera:toObjectSpace(position):floor():tuple()
+    local _, _, w, h = actor.animation.currentQuad:getViewport()
+    love.graphics.draw(actor.animation.spriteSheet, actor.animation.currentQuad, x-(w/2), y-(h/2), 0)
+  end
 
   for _, projectile in pairs(projectileManager:getAll()) do
-    x, y = camera:toObjectSpace(projectile.position):floor():tuple()
-    w, h = 1, 1
+    local x, y = camera:toObjectSpace(Vector2.fromBody(projectile.body)):floor():tuple()
+    local w, h = 1, 1
     love.graphics.rectangle("fill", x, y, w, h)
   end
 end
@@ -173,4 +194,6 @@ function love.draw()
     love.graphics.setCanvas()
     love.graphics.draw(scene, 0, 0, 0, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
   end
+
+  love.graphics.print(("FPS: %d"):format(love.timer.getFPS()), 1, 1)
 end
