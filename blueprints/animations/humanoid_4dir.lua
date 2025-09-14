@@ -1,11 +1,11 @@
 return {
-  stand_down =  { row = 1, duration = 0 },
-  walk_down =   { row = 2, duration = 0.333 },
-  stand_right = { row = 3, duration = 0 },
-  walk_right =  { row = 4, duration = 0.333 },
-  stand_left =  { row = 5, duration = 0 },
-  walk_left =   { row = 6, duration = 0.333 },
-  stand_up =    { row = 7, duration = 0 },
-  walk_up =     { row = 8, duration = 0.333 },
+  stand_down =  { row = 1, fps = 0, loop = false },
+  walk_down =   { row = 2, fps = 3, loop = true },
+  stand_right = { row = 3, fps = 0, loop = false },
+  walk_right =  { row = 4, fps = 3, loop = true },
+  stand_left =  { row = 5, fps = 0, loop = false },
+  walk_left =   { row = 6, fps = 3, loop = true },
+  stand_up =    { row = 7, fps = 0, loop = false },
+  walk_up =     { row = 8, fps = 3, loop = true },
 }
 

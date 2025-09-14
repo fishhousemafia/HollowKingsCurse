@@ -1,8 +1,6 @@
-local ServiceLocator = require "core.ServiceLocator"
 local Animation = require "graphics.Animation"
 local Vector2 = require "math.Vector2"
 local Character = require "objects.Character"
-local eventBus = ServiceLocator:get("EventBus")
 
 local state = {
   time = 0,
@@ -38,7 +36,6 @@ local function onUpdate(character, dt)
     else
       state.animation = animationFromVec2(state.direction)
     end
-  else
   end
 
   local speed = 2000

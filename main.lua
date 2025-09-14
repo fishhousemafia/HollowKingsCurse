@@ -153,8 +153,8 @@ local function drawGame()
   local x, y = camera:toObjectSpace(heroPosition):floor():tuple()
   local _, _, w, h = hero.animation.currentQuad:getViewport()
   love.graphics.draw(hero.animation.spriteSheet, hero.animation.currentQuad, x-(w/2), y-(h/2), 0)
-  local x, y = camera:toObjectSpace(enemyPosition):floor():tuple()
-  local _, _, w, h = enemy.animation.currentQuad:getViewport()
+  x, y = camera:toObjectSpace(enemyPosition):floor():tuple()
+  _, _, w, h = enemy.animation.currentQuad:getViewport()
   love.graphics.draw(enemy.animation.spriteSheet, enemy.animation.currentQuad, x-(w/2), y-(h/2), 0)
 
   for _, projectile in pairs(projectileManager:getAll()) do

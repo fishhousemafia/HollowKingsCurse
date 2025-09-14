@@ -9,7 +9,7 @@
 ---@field quadIndex number
 ---@field currentTime number
 ---@field currentAnimation string
----@field animationDict { [string]: { row: number, duration: number } }
+---@field animationDict { [string]: { row: number, fps: number } }
 ---@field currentQuad love.Quad
 local Animation = { __kind = "Character" }
 Animation.__index = Animation
@@ -55,7 +55,7 @@ function Animation:animate(animationName, dt)
   local currentAnimationTable = self.animationDict[animationName]
   if self.currentAnimation == animationName then
     self.currentTime = self.currentTime + dt
-    if self.currentTime > currentAnimationTable.duration then
+    if self.currentTime > 1 / currentAnimationTable.fps then
       self.currentTime = 0
       self.quadIndex = self.quadIndex + 1
       if self.quadIndex > #self.quads[currentAnimationTable.row] then
