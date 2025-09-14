@@ -32,7 +32,12 @@ end
 
 function Actor:enable(world, position, friendly)
   self.isEnabled = true
-  self.friendly = friendly or false
+
+  if friendly then
+    self.friendly = true
+  else
+    self.friendly = false
+  end
 
   self.world = world
   self.body = love.physics.newBody(world, position.x, position.y, "dynamic")

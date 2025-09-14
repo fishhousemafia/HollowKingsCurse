@@ -26,7 +26,6 @@ local gameDimensions = Vector2.new(320, 240)
 local camera = Vector2.zero()
 local map = {}
 local hero = nil ---@type Actor
-local enemy = nil ---@type Actor
 local scene = nil ---@type love.Canvas
 local world = nil ---@type love.World
 
@@ -132,7 +131,7 @@ function love.load()
   hero:enable(world, gameDimensions, true)
 
   local makeEnemy = require "blueprints.actors.enemy"
-  enemy = makeEnemy()
+  local enemy = makeEnemy()
   enemy:enable(world, gameDimensions / 2)
 
   eventBus:subscribe("attackRequest", function(attackVectors)
@@ -156,11 +155,21 @@ function love.keypressed(key)
   end
 end
 
+local timer = 1
 function love.update(dt)
   world:update(dt)
   actorManager:update(dt)
   projectileManager:update(dt)
   eventBus:emit("update", dt)
+
+  timer = timer - dt
+  if timer <= 0 then
+    timer = 1
+    local makeEnemy = require "blueprints.actors.enemy"
+    local enemy = makeEnemy()
+    local position = Vector2.new(love.math.random(640), love.math.random(480))
+    enemy:enable(world, position)
+  end
 end
 
 local function drawGame()
