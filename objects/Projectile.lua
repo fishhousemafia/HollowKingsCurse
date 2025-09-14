@@ -1,4 +1,4 @@
-local Vector2 = require "lib.Vector2"
+local Vector2 = require "math.Vector2"
 
 ---@class Projectile
 ---@field private __kind string

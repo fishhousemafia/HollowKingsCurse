@@ -1,4 +1,4 @@
-local ServiceLocator = require "lib.ServiceLocator"
+local ServiceLocator = require "core.ServiceLocator"
 
 ---@class ProjectileManager
 ---@field private _active Projectile[]

@@ -1,4 +1,4 @@
-local kind = require ("lib.Utils").kind
+local kind = require ("core.Utils").kind
 
 ---@class Vector2
 ---@field x number

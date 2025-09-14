@@ -10,25 +10,20 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
   end
 end
 
-require "lib.EventBus"
-require "lib.ProjectileManager"
-local ServiceLocator = require "lib.ServiceLocator"
+require "core.EventBus"
+require "systems.ProjectileManager"
+local ServiceLocator = require "core.ServiceLocator"
+local sti = require "core.sti"
+local Vector2 = require "math.Vector2"
 local eventBus = ServiceLocator:get("EventBus")
 local projectileManager = ServiceLocator:get("ProjectileManager")
 
-local Character = require "lib.Character"
-local Weapon = require "lib.Weapon"
-local Vector2 = require "lib.Vector2"
-local Animation = require "lib.Animation"
-local Projectile = require "lib.Projectile"
-
-local sti = require "lib.sti"
+_G.SPRITES = nil ---@type love.ImageData[]
 
 local gameDimensions = Vector2.new(320, 240)
 local camera = Vector2.zero()
 local map = {}
 local hero = nil ---@type Character
-local sprites = nil ---@type love.ImageData[]
 local scene = nil ---@type love.Canvas
 local world = nil ---@type love.World
 
@@ -68,10 +63,10 @@ function love.load()
     walk(dir, nil)
     return assets
   end
-  sprites = loadAssets("assets/sprites")
+  _G.SPRITES = loadAssets("sprites")
 
   love.physics.setMeter(8)
-  map = sti("assets/maps/default/default.lua", { "box2d" })
+  map = sti("maps/default/default.lua", { "box2d" })
   world = love.physics.newWorld(0, 0)
   map:box2d_init(world)
 
@@ -110,91 +105,7 @@ function love.load()
     end
   )
 
-  local hero_animationDict = {
-    stand_down =  { id = 1, duration = 0 },
-    walk_down =   { id = 2, duration = 0.333 },
-    stand_right = { id = 3, duration = 0 },
-    walk_right =  { id = 4, duration = 0.333 },
-    stand_left =  { id = 5, duration = 0 },
-    walk_left =   { id = 6, duration = 0.333 },
-    stand_up =    { id = 7, duration = 0 },
-    walk_up =     { id = 8, duration = 0.333 },
-  }
-  local hero_animation = Animation.new(sprites["hero"], 8, 8, hero_animationDict, "stand_down")
-
-  local function hero_bullet_activate(self, source, destination)
-    local angle      = source:angle(destination, true)
-    self.active      = true
-    self.lifetime    = 2
-    self.source      = source
-    self.position    = source
-    self.destination = destination
-    self.delta       = Vector2.new(math.cos(angle), math.sin(angle))
-    self.speed = -100
-  end
-  local function hero_bullet_evaluate(self, dt)
-    self.lifetime     = self.lifetime - dt
-    if self.lifetime <= 0 then self.active = false; return end
-    self.position     = self.position + (self.delta * self.speed * dt)
-    self.speed = self.speed + 5
-  end
-  local function hero_bullet_collide()
-  end
-  local hero_bullet = Projectile.new(hero_bullet_activate, hero_bullet_evaluate, hero_bullet_collide)
-  local function hero_pattern(self, source, destination)
-    local out = {}
-    local baseAngle = source:angle(destination, true)
-    local baseAngleVector = Vector2.new(math.cos(baseAngle), math.sin(baseAngle))
-    local coneAngle = math.pi/20
-    for i = -2, 2 do
-      local bp = self.blueprint:clone()
-      local angle = baseAngleVector:rotate(coneAngle * i)
-      local far = source + (angle * 1000)
-      bp.source = source
-      bp.destination = far
-      table.insert(out, bp)
-    end
-    return out
-  end
-  local hero_weapon = Weapon.new(hero_bullet, 0.1, hero_pattern)
-
-  local hero_onUpdate = function(character, dt)
-    local speed = 4000
-    local move = Vector2.zero()
-    if love.keyboard.isDown("w") then
-      character.animation:animate("walk_up", dt)
-      move = move + Vector2.new(0, -1)
-    end
-    if love.keyboard.isDown("s") then
-      character.animation:animate("walk_down", dt)
-      move = move + Vector2.new(0, 1)
-    end
-    if love.keyboard.isDown("a") then
-      character.animation:animate("walk_left", dt)
-      move = move + Vector2.new(-1, 0)
-    end
-    if love.keyboard.isDown("d") then
-      character.animation:animate("walk_right", dt)
-      move = move + Vector2.new(1, 0)
-    end
-    if string.find(character.animation.currentAnimation, "walk") and not (love.keyboard.isDown("w") or love.keyboard.isDown("s") or love.keyboard.isDown("a") or love.keyboard.isDown("d")) then
-      local standAnimation = character.animation.currentAnimation:gsub("^walk", "stand")
-      character.animation:animate(standAnimation, dt)
-    end
-
-    local velocity = move:unit() * (speed * dt)
-    character.body:setLinearVelocity(velocity:tuple())
-
-    character.weapon:update(dt)
-    if love.mouse.isDown(1) then
-      eventBus:emit("attackRequest", {
-        source = Vector2.fromBody(character.body),
-        destination = Vector2.new(love.mouse.getPosition()) / _G.SCALE_FACTOR,
-        weapon = character.weapon,
-      })
-    end
-  end
-  hero = Character.new(hero_animation, hero_weapon, hero_onUpdate)
+  hero = require "blueprints.characters.default"
   hero:enable(world, gameDimensions)
 
   eventBus:subscribe("attackRequest", function(attackVectors)
@@ -205,7 +116,7 @@ function love.load()
   eventBus:subscribe("projectileFired", function(projectile)
     projectileManager:add(projectile)
   end)
-  
+
   eventBus:subscribe("error", function(eventName, trace)
     print(eventName)
     print(trace)

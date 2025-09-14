@@ -8,7 +8,7 @@
 ---@field quads love.Quad[]
 ---@field currentTime number
 ---@field currentAnimation string
----@field animationDict { [string]: { id: number, duration: number } }
+---@field animationDict { [string]: { row: number, duration: number } }
 ---@field currentQuad love.Quad
 local Animation = { __kind = "Character" }
 Animation.__index = Animation
@@ -44,7 +44,7 @@ function Animation.new(imageData, width, height, animationDict, defaultAnimation
   end
 
   self.currentAnimation = defaultAnimation
-  self.currentQuad = self.quads[animationDict[defaultAnimation].id][1]
+  self.currentQuad = self.quads[animationDict[defaultAnimation].row][1]
 
   return self
 end
@@ -56,16 +56,16 @@ function Animation:animate(animationName, dt)
     if self.currentTime > currentAnimationTable.duration then
       self.currentTime = 0
       self.quadIndex = self.quadIndex + 1
-      if self.quadIndex > #self.quads[currentAnimationTable.id] then
+      if self.quadIndex > #self.quads[currentAnimationTable.row] then
         self.quadIndex = 1
       end
-      self.currentQuad = self.quads[currentAnimationTable.id][self.quadIndex]
+      self.currentQuad = self.quads[currentAnimationTable.row][self.quadIndex]
     end
   else
     self.currentAnimation = animationName
     self.currentTime = 0
     self.quadIndex = 1
-    self.currentQuad = self.quads[currentAnimationTable.id][1]
+    self.currentQuad = self.quads[currentAnimationTable.row][1]
   end
 end
 

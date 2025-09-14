@@ -1,4 +1,4 @@
-local ServiceLocator = require "lib.ServiceLocator"
+local ServiceLocator = require "core.ServiceLocator"
 local eventBus = ServiceLocator:get("EventBus")
 
 ---@class Character
