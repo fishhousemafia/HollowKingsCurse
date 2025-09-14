@@ -17,6 +17,8 @@ local function pattern(self, source, destination)
   return out
 end
 
-local bullet = require "blueprints.projectiles.default"
-return Weapon.new(bullet, 0.5, pattern)
+local makeProjectile = require "blueprints.projectiles.default"
+return function()
+  return Weapon.new(makeProjectile(), 0.5, pattern)
+end
 

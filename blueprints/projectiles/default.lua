@@ -15,8 +15,14 @@ local function activate(self, source, destination, collisionWorld, friendly)
   local shape      = love.physics.newRectangleShape(1, 1)
   self.fixture     = love.physics.newFixture(self.body, shape, 1)
   self.fixture:setUserData(self)
-  self.fixture:setCategory(_G.COLLISION_CATEGORIES.FRIEND_P)
-  self.fixture:setMask(_G.COLLISION_CATEGORIES.FRIEND, _G.COLLISION_CATEGORIES.FRIEND_P)
+  if friendly then
+    self.fixture:setCategory(_G.COLLISION_CATEGORIES.FRIEND_P)
+    self.fixture:setMask(_G.COLLISION_CATEGORIES.FRIEND, _G.COLLISION_CATEGORIES.FRIEND_P)
+  else
+    self.fixture:setCategory(_G.COLLISION_CATEGORIES.ENEMY_P)
+    self.fixture:setMask(_G.COLLISION_CATEGORIES.ENEMY, _G.COLLISION_CATEGORIES.ENEMY_P)
+  end
+  self.body:setBullet(true)
   self.body:setLinearVelocity(self.velocity:tuple())
 end
 
@@ -50,5 +56,7 @@ local function collide(self, contacts)
   self.active = false
 end
 
-return Projectile.new(activate, evaluate, collide)
+return function()
+  return Projectile.new(activate, evaluate, collide)
+end
 

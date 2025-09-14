@@ -22,7 +22,7 @@ return {
       spacing = 0,
       margin = 0,
       columns = 3,
-      image = "../../sprites/map_tiles.png",
+      image = "../../sprites/maps/default.png",
       imagewidth = 24,
       imageheight = 16,
       objectalignment = "unspecified",

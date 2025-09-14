@@ -88,7 +88,7 @@ function love.load()
   scene = love.graphics.newCanvas(gameDimensions.x, gameDimensions.y, { dpiscale = 1 })
 
   love.physics.setMeter(8)
-  map = sti("maps/default/default.lua", { "box2d" })
+  map = sti("data/maps/default.lua", { "box2d" })
   world = love.physics.newWorld(0, 0)
   map:box2d_init(world)
 
@@ -127,9 +127,12 @@ function love.load()
     end
   )
 
-  hero = require "blueprints.actors.hero"
+  local makeHero = require "blueprints.actors.hero"
+  hero = makeHero()
   hero:enable(world, gameDimensions, true)
-  enemy = require "blueprints.actors.enemy"
+
+  local makeEnemy = require "blueprints.actors.enemy"
+  enemy = makeEnemy()
   enemy:enable(world, gameDimensions / 2)
 
   eventBus:subscribe("attackRequest", function(attackVectors)

@@ -41,7 +41,10 @@ local onUpdate = function(character, dt)
   end
 end
 
-local humanoid_4dir = require "blueprints.animations.humanoid_4dir"
+local humanoid_4dir = require "data.animations.humanoid_4dir"
 local animation = Animation.new(_G.SPRITES["hero"], 8, 8, humanoid_4dir, "stand_down")
-local weapon = require "blueprints.weapons.default"
-return Character.new(animation, weapon, onUpdate)
+local makeWeapon = require "blueprints.weapons.default"
+return function()
+  return Character.new(animation, makeWeapon(), onUpdate)
+end
+

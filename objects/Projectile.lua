@@ -37,6 +37,7 @@ local function dActivate(self, source, destination, collisionWorld, friendly)
     self.fixture:setCategory(_G.COLLISION_CATEGORIES.ENEMY_P)
     self.fixture:setMask(_G.COLLISION_CATEGORIES.ENEMY, _G.COLLISION_CATEGORIES.ENEMY_P)
   end
+  self.body:setBullet(true)
   self.body:setLinearVelocity(velocity:tuple())
 end
 
