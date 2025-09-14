@@ -33,21 +33,21 @@ local function evaluate(self, dt)
 end
 
 local function collide(self, contacts)
-  local hurt
+  local actor
   for _, contact in pairs(contacts) do
     local a, b = contact:getFixtures()
     a, b = a:getUserData(), b:getUserData()
     if kind(a) == "Actor" then
-      hurt = a
+      actor = a
     end
     if kind(b) == "Actor" then
-      hurt = b
+      actor = b
     end
   end
-  if hurt ~= nil then
-    hurt.health = hurt.health - 10
+  if actor ~= nil then
+    actor.health = actor.health - 10
   end
-  self:reset()
+  self.active = false
 end
 
 return Projectile.new(activate, evaluate, collide)

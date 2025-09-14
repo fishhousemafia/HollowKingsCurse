@@ -1,3 +1,4 @@
+local kind = (require "core.Utils").kind
 local Vector2 = require "math.Vector2"
 
 ---@class Projectile
@@ -47,12 +48,30 @@ local function dEvaluate(self, dt)
   end
 end
 
+local function dCollide(self, contacts)
+  local actor
+  for _, contact in pairs(contacts) do
+    local a, b = contact:getFixtures()
+    a, b = a:getUserData(), b:getUserData()
+    if kind(a) == "Actor" then
+      actor = a
+    end
+    if kind(b) == "Actor" then
+      actor = b
+    end
+  end
+  if actor ~= nil then
+    actor.health = actor.health - 10
+  end
+  self.active = false
+end
+
 ---@return Projectile
 function Projectile.new(activate, evaluate, onCollide)
   local self = setmetatable({}, Projectile)
   self.activate    = activate or dActivate
   self.evaluate    = evaluate or dEvaluate
-  self.onCollide   = onCollide
+  self.onCollide   = onCollide or dCollide
   self.active      = false
   self.lifetime    = 0
   self.source      = Vector2.zero()
@@ -67,13 +86,11 @@ function Projectile:clone()
 end
 
 function Projectile:reset()
-  if self.active then
-    self.active = false
-    self.lifetime = 0
-    self.body:destroy()
-    self.body = nil
-    self.fixture = nil
-  end
+  self.active = false
+  self.lifetime = 0
+  self.body:destroy()
+  self.body = nil
+  self.fixture = nil
 end
 
 return Projectile
