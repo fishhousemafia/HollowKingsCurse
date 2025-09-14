@@ -2,12 +2,6 @@ local Animation = require "graphics.Animation"
 local Vector2 = require "math.Vector2"
 local Character = require "objects.Actor"
 
-local state = {
-  time = 0,
-  direction = Vector2.zero(),
-  animation = "stand_down",
-}
-
 local function animationFromVec2(v)
   local cardinals = {}
   cardinals[Vector2.new(1, 0)] = "walk_right"
@@ -27,26 +21,32 @@ local function animationFromVec2(v)
 end
 
 local function onUpdate(character, dt)
-  state.time = state.time - dt
-  if state.time <= 0 then
-    state.time = love.math.random(1)
-    state.direction = Vector2.new(love.math.random(-1, 1), love.math.random(-1, 1)):unit()
-    if state.direction == Vector2.zero() then
-      state.animation = character.animation.currentAnimation:gsub("^walk", "stand")
+  character.state.time = character.state.time - dt
+  if character.state.time <= 0 then
+    character.state.time = love.math.random(5000) / 1000
+    character.state.direction = Vector2.new(love.math.random(-1, 1), love.math.random(-1, 1)):unit()
+    if character.state.direction == Vector2.zero() then
+      character.state.animation = character.animation.currentAnimation:gsub("^walk", "stand")
     else
-      state.animation = animationFromVec2(state.direction)
+      character.state.animation = animationFromVec2(character.state.direction)
     end
   end
 
   local speed = 2000
-  local velocity = state.direction * (speed * dt)
+  local velocity = character.state.direction * (speed * dt)
   character.body:setLinearVelocity(velocity:tuple())
-  character.animation:animate(state.animation, dt)
+  character.animation:animate(character.state.animation, dt)
 end
 
 local humanoid_4dir = require "data.animations.humanoid_4dir"
-local animation = Animation.new(_G.SPRITES["hero"], 8, 8, humanoid_4dir, "stand_down")
-local makeWeapon = require "blueprints.weapons.default"
 return function()
-  return Character.new(animation, makeWeapon(), onUpdate)
+  local animation = Animation.new(_G.SPRITES["hero"], 8, 8, humanoid_4dir, "stand_down")
+  local makeWeapon = require "blueprints.weapons.default"
+  local out = Character.new(animation, makeWeapon(), onUpdate)
+  out.state = {
+    time = 0,
+    direction = Vector2.zero(),
+    animation = "stand_down",
+  }
+  return out
 end
