@@ -167,10 +167,6 @@ local function drawGame()
   love.graphics.setColor(1, 1, 1, 1)
   map:draw(-camera.x, -camera.y)
 
-  love.graphics.setColor(1, 0, 0, 1)
-  map:box2d_draw(-camera.x, -camera.y)
-
-  love.graphics.setColor(1, 1, 1, 1)
   for _, actor in pairs(actorManager:getEnabled()) do
     local position = Vector2.fromBody(actor.body)
     local x, y = camera:toObjectSpace(position):floor():tuple()
@@ -183,6 +179,17 @@ local function drawGame()
     local w, h = 1, 1
     love.graphics.rectangle("fill", x, y, w, h)
   end
+
+  love.graphics.setColor(1, 0, 0, 1)
+  for _, body in pairs(world:getBodies()) do
+    for _, fixture in pairs(body:getFixtures()) do
+      local x1, y1, x2, y2 = fixture:getBoundingBox()
+      local w, h = x2 - x1, y2 - y1
+      local point = camera:toObjectSpace(Vector2.new(x1, y1))
+      love.graphics.rectangle("line", point.x, point.y, w, h)
+    end
+  end
+
 end
 
 function love.draw()
