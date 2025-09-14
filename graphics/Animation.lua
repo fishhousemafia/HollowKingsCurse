@@ -6,6 +6,7 @@
 ---@field animate fun(animation: Animation, animationName: string, dt: number)
 ---@field spriteSheet love.Image
 ---@field quads love.Quad[]
+---@field quadIndex number
 ---@field currentTime number
 ---@field currentAnimation string
 ---@field animationDict { [string]: { row: number, duration: number } }
@@ -22,6 +23,7 @@ function Animation.new(imageData, width, height, animationDict, defaultAnimation
   self.animationDict = animationDict
   self.spriteSheet = love.graphics.newImage(imageData)
   self.quads = {};
+  self.quadIndex = 1
   self.currentTime = 0
 
   for y = 0, self.imageData:getHeight() - height, height do
