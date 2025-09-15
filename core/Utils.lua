@@ -3,28 +3,31 @@ local Utils = {}
 function Utils.kind(o)
   local t = type(o)
   if t == "table" or t == "cdata" then
-    return o.__kind or type(o)
+    return o.__kind or t
   end
-  return type(o)
+  return t
 end
 
 function Utils.stringify(o)
-  if type(o) ~= "table" then
+  local t = type(o)
+
+  if t ~= "table" then
     return tostring(o)
   end
 
+  local k = Utils.kind(o)
   local builder = "{"
-  if Utils.kind(o) ~= "table" then
-    builder = Utils.kind(o) .. builder
+  if k ~= "table" then
+    builder = k .. builder
   end
 
   local loop = false
-  for k, v in pairs(o) do
-    if k == "__index" then
+  for key, v in pairs(o) do
+    if key == "__index" then
       goto continue
     end
     loop = true
-    builder = builder .. " " .. k .. " = " .. Utils.stringify(v) .. ","
+    builder = builder .. " " .. key .. " = " .. Utils.stringify(v) .. ","
     ::continue::
   end
 

@@ -10,6 +10,8 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
   end
 end
 
+local RUN_PROFILER = true
+
 require "core.EventBus"
 require "systems.ActorManager"
 require "systems.ProjectileManager"
@@ -79,6 +81,11 @@ _G.COLLISION_CATEGORIES = {
 }
 
 function love.load()
+  if RUN_PROFILER then
+    love.profiler = require("profile")
+    love.profiler.start()
+  end
+
   local desktopDimensions = Vector2.new(love.window.getDesktopDimensions(1))
   local scaled = (desktopDimensions / gameDimensions):floor()
   _G.SCALE_FACTOR = math.min(scaled:tuple()) - 1
@@ -145,9 +152,17 @@ function love.load()
   end)
 end
 
+local hudEnabled = true
+local profilerPause = false
 function love.keypressed(key)
   if key == "q" then
     love.event.quit()
+  end
+  if key == "h" then
+    hudEnabled = not hudEnabled
+  end
+  if key == "p" then
+    profilerPause = not profilerPause
   end
 end
 
@@ -156,8 +171,17 @@ local maxSteps = 8
 local maxAccumulator = tick * maxSteps
 local accumulator = 0
 local spawnTimer = 0
+love.frame = 0
 
 function love.update(dt)
+  love.frame = love.frame + 1
+  if love.frame % 100 == 0 and not profilerPause and RUN_PROFILER then
+    love.profiler.stop()
+    love.report = love.profiler.report(20)
+    love.profiler.reset()
+    love.profiler.start()
+  end
+
   accumulator = math.min(accumulator + dt, maxAccumulator)
   local steps = 0
   while accumulator >= tick and steps < maxSteps do
@@ -221,9 +245,9 @@ local function drawGame()
   --end
 
   love.graphics.setColor(1, 1, 1, 1)
-  love.graphics.print(("FPS: %d"):format(love.timer.getFPS()), 1, 1)
 end
 
+local mono = love.graphics.newFont("fonts/RobotoMono-Regular.ttf")
 function love.draw()
   if hero.isEnabled then
     love.graphics.setCanvas(scene)
@@ -234,4 +258,11 @@ function love.draw()
     love.graphics.draw(scene, 0, 0, 0, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
   end
 
+  if hudEnabled then
+    love.graphics.setColor(0, 0, 0, 0.5)
+    love.graphics.rectangle("fill", 0, 0, 820, 420)
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.print(("FPS: %d"):format(love.timer.getFPS()), 1, 1)
+    love.graphics.print(love.report or "Please wait...", mono, 1, 13)
+  end
 end
