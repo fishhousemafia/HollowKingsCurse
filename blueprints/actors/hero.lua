@@ -5,7 +5,7 @@ local Character = require "objects.Actor"
 local eventBus = ServiceLocator:get("EventBus")
 
 local onUpdate = function(character, dt)
-  local speed = 4000
+  local speed = 80
   local move = Vector2.zero()
   if love.keyboard.isDown("w") then
     character.animation:animate("walk_up", dt)
@@ -28,7 +28,7 @@ local onUpdate = function(character, dt)
     character.animation:animate(standAnimation, dt)
   end
 
-  local velocity = move:unit() * (speed * dt)
+  local velocity = move:unit() * speed
   character.body:setLinearVelocity(velocity:tuple())
 
   character.weapon:update(dt)

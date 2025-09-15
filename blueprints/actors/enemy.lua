@@ -24,18 +24,18 @@ local function onUpdate(character, dt)
   character.state.time = character.state.time - dt
   if character.state.time <= 0 then
     character.state.time = love.math.random(5000) / 1000
-    character.state.direction = Vector2.new(love.math.random(-1, 1), love.math.random(-1, 1)):unit()
+    character.state.direction = Vector2.new(love.math.random(-1000, 1000)/1000, love.math.random(-1000, 1000)/1000):unit()
     if character.state.direction == Vector2.zero() then
       character.state.animation = character.animation.currentAnimation:gsub("^walk", "stand")
     else
       character.state.animation = animationFromVec2(character.state.direction)
     end
   end
-
-  local speed = 2000
-  local velocity = character.state.direction * (speed * dt)
-  character.body:setLinearVelocity(velocity:tuple())
   character.animation:animate(character.state.animation, dt)
+
+  local speed = 20
+  local velocity = character.state.direction * speed
+  character.body:setLinearVelocity(velocity:tuple())
 end
 
 local humanoid_4dir = require "data.animations.humanoid_4dir"

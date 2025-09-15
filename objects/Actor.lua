@@ -70,7 +70,6 @@ end
 function Actor:_onUpdate(dt)
   if self.health <= 0 then
     self:disable()
-    actorManager:remove(self)
   else
     self:onUpdate(dt)
   end

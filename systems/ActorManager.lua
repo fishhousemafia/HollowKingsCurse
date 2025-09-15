@@ -102,10 +102,17 @@ end
 
 function ActorManager:update(dt)
   local list = self._list
-  for i = 1, #list do
+  local i = 1
+  while i <= #list do
     local a = list[i]
-    if a.isEnabled then
+    if a and a.isEnabled then
       a:_onUpdate(dt)
+      -- If 'a' removed itself, list[i] now holds a different actor; process it next.
+      if list[i] == a then
+        i = i + 1
+      end
+    else
+      i = i + 1
     end
   end
 end

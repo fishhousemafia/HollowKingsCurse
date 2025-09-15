@@ -130,10 +130,6 @@ function love.load()
   hero = makeHero()
   hero:enable(world, gameDimensions, true)
 
-  local makeEnemy = require "blueprints.actors.enemy"
-  local enemy = makeEnemy()
-  enemy:enable(world, gameDimensions / 2)
-
   eventBus:subscribe("attackRequest", function(attackVectors)
     attackVectors.destination = camera:toWorldSpace(attackVectors.destination)
     hero.weapon:attack(attackVectors.source, attackVectors.destination)
@@ -155,16 +151,26 @@ function love.keypressed(key)
   end
 end
 
-local timer = 1
-function love.update(dt)
-  world:update(dt)
-  actorManager:update(dt)
-  projectileManager:update(dt)
-  eventBus:emit("update", dt)
+local tick = 1/60
+local maxSteps = 8
+local maxAccumulator = tick * maxSteps
+local accumulator = 0
+local spawnTimer = 0
 
-  timer = timer - dt
-  if timer <= 0 then
-    timer = 1
+function love.update(dt)
+  accumulator = math.min(accumulator + dt, maxAccumulator)
+  local steps = 0
+  while accumulator >= tick and steps < maxSteps do
+    world:update(tick)
+    actorManager:update(tick)
+    projectileManager:update(tick)
+    steps = steps + 1
+    accumulator = accumulator - tick
+  end
+
+  spawnTimer = spawnTimer - dt
+  if spawnTimer <= 0 then
+    spawnTimer = 10
     local makeEnemy = require "blueprints.actors.enemy"
     local enemy = makeEnemy()
     local position = Vector2.new(love.math.random(640), love.math.random(480))
@@ -202,6 +208,8 @@ local function drawGame()
     end
   end
 
+  love.graphics.setColor(1, 1, 1, 1)
+  love.graphics.print(("FPS: %d"):format(love.timer.getFPS()), 1, 1)
 end
 
 function love.draw()
@@ -214,5 +222,4 @@ function love.draw()
     love.graphics.draw(scene, 0, 0, 0, _G.SCALE_FACTOR, _G.SCALE_FACTOR)
   end
 
-  love.graphics.print(("FPS: %d"):format(love.timer.getFPS()), 1, 1)
 end
