@@ -151,7 +151,7 @@ function love.keypressed(key)
   end
 end
 
-local tick = 1/60
+local tick = 1/120
 local maxSteps = 8
 local maxAccumulator = tick * maxSteps
 local accumulator = 0
@@ -170,7 +170,7 @@ function love.update(dt)
 
   spawnTimer = spawnTimer - dt
   if spawnTimer <= 0 then
-    spawnTimer = 10
+    spawnTimer = 1
     local makeEnemy = require "blueprints.actors.enemy"
     local enemy = makeEnemy()
     local position = Vector2.new(love.math.random(640), love.math.random(480))
@@ -186,27 +186,39 @@ local function drawGame()
   map:draw(-camera.x, -camera.y)
 
   for _, actor in pairs(actorManager:getEnabled()) do
+    love.graphics.setColor(1, 1, 1, 1)
     local position = Vector2.fromBody(actor.body)
     local x, y = camera:toObjectSpace(position):floor():tuple()
     local _, _, w, h = actor.animation.currentQuad:getViewport()
     love.graphics.draw(actor.animation.spriteSheet, actor.animation.currentQuad, x-(w/2), y-(h/2), 0)
+
+    love.graphics.setColor(0, 0, 0, 1)
+    love.graphics.rectangle("fill", x-(w/2)-1, y+(h/2)+1, w+2, 3)
+    local pct = actor.health / 100
+    local len = pct * w
+    local r = 1 - pct
+    local g = pct
+    local bright = math.min(r, g)
+    love.graphics.setColor(r+bright, g+bright, 0, 1)
+    love.graphics.rectangle("fill", x-(w/2), y+(h/2)+2, len, 1)
   end
 
+  love.graphics.setColor(1, 1, 1, 1)
   for _, projectile in pairs(projectileManager:getAll()) do
     local x, y = camera:toObjectSpace(Vector2.fromBody(projectile.body)):floor():tuple()
     local w, h = 1, 1
     love.graphics.rectangle("fill", x, y, w, h)
   end
 
-  love.graphics.setColor(1, 0, 0, 1)
-  for _, body in pairs(world:getBodies()) do
-    for _, fixture in pairs(body:getFixtures()) do
-      local x1, y1, x2, y2 = fixture:getBoundingBox()
-      local w, h = x2 - x1, y2 - y1
-      local point = camera:toObjectSpace(Vector2.new(x1, y1))
-      love.graphics.rectangle("line", point.x, point.y, w, h)
-    end
-  end
+  --love.graphics.setColor(1, 0, 0, 1)
+  --for _, body in pairs(world:getBodies()) do
+  --  for _, fixture in pairs(body:getFixtures()) do
+  --    local x1, y1, x2, y2 = fixture:getBoundingBox()
+  --    local w, h = x2 - x1, y2 - y1
+  --    local point = camera:toObjectSpace(Vector2.new(x1, y1))
+  --    love.graphics.rectangle("line", point.x, point.y, w, h)
+  --  end
+  --end
 
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.print(("FPS: %d"):format(love.timer.getFPS()), 1, 1)

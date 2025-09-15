@@ -5,7 +5,7 @@ local Projectile = require "objects.Projectile"
 local function activate(self, source, destination, collisionWorld, friendly)
   local angle      = source:angle(destination, true)
   self.angleVector = Vector2.new(math.cos(angle), math.sin(angle))
-  self.speed       = 200
+  self.speed       = 180
   self.velocity    = self.angleVector * self.speed
   self.active      = true
   self.lifetime    = 1
@@ -33,7 +33,7 @@ local function evaluate(self, dt)
     return
   end
 
-  self.speed = self.speed - 2
+  self.speed = self.speed - 1.5
   self.velocity = self.angleVector * self.speed
   self.body:setLinearVelocity(self.velocity:tuple())
 end
