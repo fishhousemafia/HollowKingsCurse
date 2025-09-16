@@ -7,26 +7,28 @@ local eventBus = ServiceLocator:get("EventBus")
 local onUpdate = function(character, dt)
   local speed = 80
   local move = Vector2.zero()
+  local animation = character.animation.currentAnimation
   if love.keyboard.isDown("w") then
-    character.animation:animate("walk_up", dt)
+    animation = "walk_up"
     move = move + Vector2.new(0, -1)
   end
   if love.keyboard.isDown("s") then
-    character.animation:animate("walk_down", dt)
+    animation = "walk_down"
     move = move + Vector2.new(0, 1)
   end
   if love.keyboard.isDown("a") then
-    character.animation:animate("walk_left", dt)
+    animation = "walk_left"
     move = move + Vector2.new(-1, 0)
   end
   if love.keyboard.isDown("d") then
-    character.animation:animate("walk_right", dt)
+    animation = "walk_right"
     move = move + Vector2.new(1, 0)
   end
   if string.find(character.animation.currentAnimation, "walk") and not (love.keyboard.isDown("w") or love.keyboard.isDown("s") or love.keyboard.isDown("a") or love.keyboard.isDown("d")) then
     local standAnimation = character.animation.currentAnimation:gsub("^walk", "stand")
-    character.animation:animate(standAnimation, dt)
+    animation = standAnimation
   end
+  character.animation:animate(animation, dt)
 
   local velocity = move:unit() * speed
   character.body:setLinearVelocity(velocity:tuple())
