@@ -11,6 +11,7 @@ local eventBus = ServiceLocator:get("EventBus")
 ---@field fixture love.Fixture
 ---@field subs function[]
 ---@field onUpdate fun(self: Actor, dt, number)
+---@field maxHealth number
 ---@field health number
 ---@field isEnabled boolean
 ---@field friendly boolean
@@ -24,6 +25,7 @@ function Actor.new(animation, weapon, onUpdate)
   self.weapon = weapon
   self.onUpdate = onUpdate
   self.isEnabled = false
+  self.maxHealth = 100
   self.health = 100
   self.friendly = false
 

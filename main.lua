@@ -10,11 +10,11 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
   end
 end
 
-local RUN_PROFILER = true
 
 require "core.EventBus"
 require "systems.ActorManager"
 require "systems.ProjectileManager"
+local Map = require("core.Map")
 local ServiceLocator = require "core.ServiceLocator"
 local sti = require "core.sti"
 local Vector2 = require "math.Vector2"
@@ -22,9 +22,28 @@ local eventBus = ServiceLocator:get("EventBus")
 local actorManager = ServiceLocator:get("ActorManager")
 local projectileManager = ServiceLocator:get("ProjectileManager")
 
+_G.RUN_PROFILER = false
 _G.SPRITES = nil ---@type love.ImageData[]
+_G.GAME_DIMENSIONS = Vector2.new(320, 240)
+_G.COLLISION_CATEGORIES = {
+    BOUNDARY = 1,
+    OBSTACLE = 2,
+    FRIEND   = 3,
+    ENEMY    = 4,
+    FRIEND_P = 5,
+    ENEMY_P  = 6,
+    CAT_6    = 7,
+    CAT_7    = 8,
+    CAT_8    = 9,
+    CAT_9    = 10,
+    CAT_10   = 11,
+    CAT_11   = 12,
+    CAT_12   = 13,
+    CAT_13   = 14,
+    CAT_14   = 15,
+    CAT_15   = 16,
+}
 
-local gameDimensions = Vector2.new(320, 240)
 local camera = Vector2.zero()
 local map = {}
 local hero = nil ---@type Actor
@@ -61,42 +80,23 @@ local function loadAssets(dir)
 end
 _G.SPRITES = loadAssets("sprites")
 
-_G.COLLISION_CATEGORIES = {
-    BOUNDARY = 1,
-    OBSTACLE = 2,
-    FRIEND   = 3,
-    ENEMY    = 4,
-    FRIEND_P = 5,
-    ENEMY_P  = 6,
-    CAT_6    = 7,
-    CAT_7    = 8,
-    CAT_8    = 9,
-    CAT_9    = 10,
-    CAT_10   = 11,
-    CAT_11   = 12,
-    CAT_12   = 13,
-    CAT_13   = 14,
-    CAT_14   = 15,
-    CAT_15   = 16,
-}
-
 function love.load()
-  if RUN_PROFILER then
+  if _G.RUN_PROFILER then
     love.profiler = require("profile")
     love.profiler.start()
   end
 
   local desktopDimensions = Vector2.new(love.window.getDesktopDimensions(1))
-  local scaled = (desktopDimensions / gameDimensions):floor()
+  local scaled = (desktopDimensions / _G.GAME_DIMENSIONS):floor()
   _G.SCALE_FACTOR = math.min(scaled:tuple()) - 1
-  love.window.setMode(gameDimensions.x * _G.SCALE_FACTOR, gameDimensions.y * _G.SCALE_FACTOR, { resizable = false, minwidth = 640, minheight = 480 })
+  love.window.setMode(_G.GAME_DIMENSIONS.x * _G.SCALE_FACTOR, _G.GAME_DIMENSIONS.y * _G.SCALE_FACTOR, { resizable = false, minwidth = 640, minheight = 480 })
   love.graphics.setDefaultFilter("nearest", "nearest")
-  scene = love.graphics.newCanvas(gameDimensions.x, gameDimensions.y, { dpiscale = 1 })
+  scene = love.graphics.newCanvas(_G.GAME_DIMENSIONS.x, _G.GAME_DIMENSIONS.y, { dpiscale = 1 })
 
   love.physics.setMeter(8)
-  map = sti("data/maps/default.lua", { "box2d" })
+  map = Map.new("data/maps/default.lua")
   world = love.physics.newWorld(0, 0)
-  map:box2d_init(world)
+  map:initPhysics(world)
 
   world:setCallbacks(
     function(fixture1, fixture2, contact)
@@ -135,7 +135,7 @@ function love.load()
 
   local makeHero = require "blueprints.actors.hero"
   hero = makeHero()
-  hero:enable(world, gameDimensions, true)
+  hero:enable(world, _G.GAME_DIMENSIONS, true)
 
   eventBus:subscribe("attackRequest", function(attackVectors)
     attackVectors.destination = camera:toWorldSpace(attackVectors.destination)
@@ -175,7 +175,7 @@ love.frame = 0
 
 function love.update(dt)
   love.frame = love.frame + 1
-  if love.frame % 100 == 0 and not profilerPause and RUN_PROFILER then
+  if love.frame % 100 == 0 and not profilerPause and _G.RUN_PROFILER then
     love.profiler.stop()
     love.report = love.profiler.report(20)
     love.profiler.reset()
@@ -204,7 +204,7 @@ end
 
 local function drawGame()
   local heroPosition = Vector2.fromBody(hero.body)
-  camera = (heroPosition - (gameDimensions / 2)):floor()
+  camera = (heroPosition - (_G.GAME_DIMENSIONS / 2)):floor()
 
   love.graphics.setColor(1, 1, 1, 1)
   map:draw(-camera.x, -camera.y)
@@ -218,7 +218,7 @@ local function drawGame()
 
     love.graphics.setColor(0, 0, 0, 1)
     love.graphics.rectangle("fill", x-(w/2)-1, y+(h/2)+1, w+2, 3)
-    local pct = actor.health / 100
+    local pct = actor.health / actor.maxHealth
     local len = pct * w
     local r = 1 - pct
     local g = pct
@@ -247,12 +247,46 @@ local function drawGame()
   love.graphics.setColor(1, 1, 1, 1)
 end
 
+local function drawHud()
+  -- minimap
+  love.graphics.setColor(0, 0, 0, 1)
+  love.graphics.rectangle("fill", 252, 2, 66, 50)
+  love.graphics.setColor(0.5, 0.5, 0.5, 1)
+  love.graphics.rectangle("fill", 253, 3, 64, 48)
+
+  -- vitals
+  love.graphics.setColor(0, 0, 0, 1)
+  love.graphics.rectangle("fill", 2, 2, 82, 6)
+  local pct = hero.health / hero.maxHealth
+  local len = pct * 80
+  local r = 1 - pct
+  local g = pct
+  local bright = math.min(r, g)
+  love.graphics.setColor(r+bright, g+bright, 0, 1)
+  love.graphics.rectangle("fill", 3, 3, len, 4)
+
+  love.graphics.setColor(0, 0, 0, 1)
+  love.graphics.rectangle("fill", 2, 10, 82, 6)
+  love.graphics.setColor(0, 0, 1, 1)
+  love.graphics.rectangle("fill", 3, 11, 80, 4)
+
+  -- inventory
+  for i=0, 9 do
+    love.graphics.setColor(0, 0, 0, 1)
+    love.graphics.rectangle("fill", 101+(i*12), 228, 10, 10)
+
+    love.graphics.setColor(0.5, 0.5, 0.5, 1)
+    love.graphics.rectangle("fill", 102+(i*12), 229, 8, 8)
+  end
+end
+
 local mono = love.graphics.newFont("fonts/RobotoMono-Regular.ttf")
 function love.draw()
   if hero.isEnabled then
     love.graphics.setCanvas(scene)
     love.graphics.clear(0, 0, 0, 1)
     drawGame()
+    drawHud()
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.setCanvas()
     love.graphics.draw(scene, 0, 0, 0, _G.SCALE_FACTOR, _G.SCALE_FACTOR)

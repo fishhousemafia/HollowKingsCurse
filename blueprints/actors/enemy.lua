@@ -6,8 +6,6 @@ local function animationFromVec2(v)
   local cardinals = {}
   cardinals[Vector2.new(1, 0)] = "walk_right"
   cardinals[Vector2.new(-1, 0)] = "walk_left"
-  cardinals[Vector2.new(0, 1)] = "walk_down"
-  cardinals[Vector2.new(0, -1)] = "walk_up"
 
   local bestDot, best = -math.huge, nil
   for dir, animation in pairs(cardinals) do
@@ -38,15 +36,14 @@ local function onUpdate(character, dt)
   character.body:setLinearVelocity(velocity:tuple())
 end
 
-local humanoid_4dir = require "data.animations.humanoid_4dir"
+local humanoid_2dir = require "data.animations.humanoid_2dir"
 return function()
-  local animation = Animation.new(_G.SPRITES["hero"], 8, 8, humanoid_4dir, "stand_down")
+  local animation = Animation.new(_G.SPRITES["enemy"], 8, 8, humanoid_2dir, "stand_right")
   local makeWeapon = require "blueprints.weapons.default"
   local out = Character.new(animation, makeWeapon(), onUpdate)
   out.state = {
     time = 0,
     direction = Vector2.zero(),
-    animation = "stand_down",
   }
   return out
 end

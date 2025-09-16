@@ -9,7 +9,7 @@ return {
   height = 60,
   tilewidth = 8,
   tileheight = 8,
-  nextlayerid = 3,
+  nextlayerid = 4,
   nextobjectid = 32,
   properties = {},
   tilesets = {
@@ -40,6 +40,35 @@ return {
       properties = {},
       wangsets = {},
       tilecount = 6,
+      tiles = {}
+    },
+    {
+      name = "enemy",
+      firstgid = 7,
+      class = "",
+      tilewidth = 8,
+      tileheight = 8,
+      spacing = 0,
+      margin = 0,
+      columns = 2,
+      image = "../../sprites/actors/enemy.png",
+      imagewidth = 16,
+      imageheight = 32,
+      objectalignment = "unspecified",
+      tilerendersize = "tile",
+      fillmode = "stretch",
+      tileoffset = {
+        x = 0,
+        y = 0
+      },
+      grid = {
+        orientation = "orthogonal",
+        width = 8,
+        height = 8
+      },
+      properties = {},
+      wangsets = {},
+      tilecount = 8,
       tiles = {}
     }
   },
@@ -150,8 +179,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -166,8 +194,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -182,8 +209,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -198,8 +224,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -214,8 +239,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -230,8 +254,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -246,8 +269,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -262,8 +284,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -278,8 +299,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -294,8 +314,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -310,8 +329,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -326,8 +344,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -342,8 +359,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -358,8 +374,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -374,8 +389,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -390,8 +404,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -406,8 +419,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -422,8 +434,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -438,8 +449,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -454,8 +464,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -470,8 +479,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         },
         {
@@ -486,8 +494,7 @@ return {
           rotation = 0,
           visible = true,
           properties = {
-            ["collidable"] = true,
-            ["static"] = true
+            ["type"] = "static"
           }
         }
       }

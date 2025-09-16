@@ -1,8 +1,8 @@
 local ServiceLocator = require "core.ServiceLocator"
 
 ---@class ActorManager
----@field private _list Actor[]
----@field private _idx table<Actor, integer>  -- reverse index for O(1) remove
+---@field private _list Map[]
+---@field private _idx table<Map, integer>  -- reverse index for O(1) remove
 ---@field updateEnabledOnly boolean            -- if true, skip updates when !isEnabled
 local ActorManager = {}
 ActorManager.__index = ActorManager
@@ -15,7 +15,7 @@ function ActorManager.new()
   return self
 end
 
----@param actor Actor
+---@param actor Map
 function ActorManager:add(actor)
   if self._idx[actor] then
     return
@@ -29,12 +29,12 @@ function ActorManager:add(actor)
   end
 end
 
----@param actors Actor[]
+---@param actors Map[]
 function ActorManager:addAll(actors)
   for i = 1, #actors do self:add(actors[i]) end
 end
 
----@param actor Actor
+---@param actor Map
 function ActorManager:remove(actor)
   local i = self._idx[actor]
   if not i then
@@ -71,7 +71,7 @@ function ActorManager:countEnabled()
   return n
 end
 
----@return Actor[]
+---@return Map[]
 function ActorManager:getAll()
   local out, n = {}, #self._list
   for i = 1, n do
@@ -80,7 +80,7 @@ function ActorManager:getAll()
   return out
 end
 
----@return Actor[]
+---@return Map[]
 function ActorManager:getEnabled()
   local out, j = {}, 1
   for i = 1, #self._list do
