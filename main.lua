@@ -16,7 +16,6 @@ require "systems.ActorManager"
 require "systems.ProjectileManager"
 local Map = require("core.Map")
 local ServiceLocator = require "core.ServiceLocator"
-local sti = require "core.sti"
 local Vector2 = require "math.Vector2"
 local eventBus = ServiceLocator:get("EventBus")
 local actorManager = ServiceLocator:get("ActorManager")
